@@ -1,0 +1,137 @@
+/* =============================================================================
+   Скин «Печать» (ризография): плоские краски на зернистой бумаге.
+   Источник идей: Пример_стиля_печать.html
+   Что здесь: токены → бумага и зерно → число «в два прогона» → маркер вместо
+   заливки у переключателей → столбцы с растром/штриховкой → «чек» вместо плашки.
+   Динамика (повторная «печать», подпись data-t, штрихкод) - в print.js.
+   ============================================================================= */
+
+/* ---------- 1. Токены ---------- */
+html[data-skin="print"] body {
+  --font-ui: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --font-display: 'Unbounded', 'Arial Black', sans-serif;
+  --radius-card: 4px; --radius-sub: 3px; --radius-badge: 2px;
+  --shell-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  --bg-outer: #0D0E13; --bg-shell: #14151B; --bg-card: #1B1D25; --bg-elevated: #232631; --bg-pill: #101116;
+  --border-subtle: rgba(241, 238, 230, 0.16); --border-strong: rgba(241, 238, 230, 0.3);
+  --text-main: #F1EEE6; --text-secondary: #A0A6B6; --text-muted: #7C8294;
+  --ya-yellow: #FFE800; --ya-yellow-hover: #F2DC00; --ya-yellow-text: #20212B;
+  --surface-hover: rgba(241, 238, 230, 0.05);
+  --shadow-card: 4px 4px 0 rgba(255, 72, 176, 0.35);
+  --control-active-bg: #FFE800; --control-active-fg: #20212B; --control-active-shadow: none;
+  --series-orders: #2B97E8; --series-surge: #FFE800; --series-rating: #FF6C2F;
+  --series-bonus: #765BA7; --series-goals: #FF48B0; --series-tips: #00A95C;
+  /* токены самого скина */
+  --pr-blue: #3AA7F0; --pr-pink: #FF48B0; --pr-red: #FF6B7F; --pr-hl: #FFE800;
+  --pr-ghost: rgba(0, 214, 255, 0.55); --pr-blend: screen; --pr-grain: 0.3;
+}
+html[data-skin="print"] body.light-mode {
+  --bg-outer: #DDE1E8; --bg-shell: #ECEEF2; --bg-card: #FBFAF6; --bg-elevated: #F1F2F5; --bg-pill: #E4E7EC;
+  --border-subtle: rgba(32, 33, 43, 0.18); --border-strong: rgba(32, 33, 43, 0.34);
+  --text-main: #20212B; --text-secondary: #4E5463; --text-muted: #7B8190;
+  --surface-hover: rgba(32, 33, 43, 0.05);
+  --shadow-card: 4px 4px 0 rgba(0, 120, 191, 0.28);
+  --series-orders: #0078BF;
+  --pr-blue: #0078BF; --pr-red: #E5384F;
+  --pr-ghost: rgba(255, 72, 176, 0.65); --pr-blend: multiply; --pr-grain: 0.18;
+}
+
+/* ---------- 2. Бумага: зерно + бумажная подложка ---------- */
+html[data-skin="print"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: var(--pr-grain);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+html[data-skin="print"] body:not(.light-mode)::before { filter: invert(1); }
+
+/* карточки: плоские, со сдвинутой «второй краской» вместо мягкой тени; подкарточки - пунктиром */
+html[data-skin="print"] .ya-card { box-shadow: var(--shadow-card) !important; }
+html[data-skin="print"] .ya-subcard { border-style: dashed !important; box-shadow: none !important; }
+html[data-skin="print"] .app-shell h2,
+html[data-skin="print"] .app-shell h3 { letter-spacing: -0.03em; }
+
+/* ---------- 3. Число «в два прогона» (синий + сдвинутый розовый, как при ризо-печати) ---------- */
+html[data-skin="print"] #allTimeHourlyProfit {
+  display: block; position: relative; isolation: isolate; width: max-content; max-width: 100%;
+  margin: 4px 0 2px; font: 900 clamp(44px, 13vw, 64px) / 0.95 var(--font-display) !important;
+  letter-spacing: -0.06em; color: var(--pr-blue);
+}
+html[data-skin="print"] #allTimeHourlyProfit::after {
+  content: attr(data-t); position: absolute; left: 0; top: 0; color: var(--pr-pink);
+  mix-blend-mode: var(--pr-blend); transform: translate(4px, 3px); pointer-events: none;
+}
+html[data-skin="print"] #allTimeHourlyProfit.fx-pr { animation: pr-r1 1.2s cubic-bezier(.2, .9, .3, 1) both; }
+html[data-skin="print"] #allTimeHourlyProfit.fx-pr::after { animation: pr-r2 1.2s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes pr-r1 { from { transform: translate(-12px, 8px); opacity: 0; } }
+@keyframes pr-r2 { from { transform: translate(34px, -16px); opacity: 0; } }
+
+/* ---------- 4. Переключатели: жёлтый «маркер» подчёркивает выбранное, а не заливает кнопку ---------- */
+html[data-skin="print"] .ya-seg-btn,
+html[data-skin="print"] .ya-switch-opt,
+html[data-skin="print"] .ya-preset-btn {
+  background-image: linear-gradient(transparent 52%, var(--pr-hl) 52% 94%, transparent 94%);
+  background-repeat: no-repeat; background-size: 0% 100%;
+  transition: background-size 0.3s, color 0.2s;
+}
+html[data-skin="print"]:not(#fx-) .ya-seg-btn-active,
+html[data-skin="print"]:not(#fx-) .ya-switch-opt.ya-switch-opt-active,
+html[data-skin="print"]:not(#fx-) .ya-preset-btn-active {
+  background-color: transparent !important; background-size: 100% 100%;
+  color: #20212B !important; font-weight: 700; box-shadow: none !important;   /* маркер светлый в обоих режимах → текст всегда тёмный */
+}
+html[data-skin="print"] .btn-primary { border-radius: 2px; box-shadow: 3px 3px 0 var(--pr-pink) !important; }
+
+/* ---------- 5. Диаграмма: растр и штриховка, «вторая краска» у выбранного, росчерк маркером ---------- */
+html[data-skin="print"] .seg-rating, html[data-skin="print"] .seg-goals {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1.3px); background-size: 4px 4px;
+}
+html[data-skin="print"] .seg-bonus, html[data-skin="print"] .seg-tips {
+  background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.5) 0 2px, transparent 2px 5px);
+}
+html[data-skin="print"] .chart-gross-striped {                       /* налог - карандашная штриховка */
+  background: repeating-linear-gradient(135deg, var(--text-main) 0 1px, transparent 1px 4px) !important;
+  border: 1px dashed var(--text-main) !important; border-bottom: 0 !important; opacity: 0.55;
+}
+html[data-skin="print"] .chart-bar-item > .flex-1 > * { border-radius: 0 !important; }
+html[data-skin="print"] .chart-bar-backdrop { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+html[data-skin="print"] .chart-bar-item:has(.chart-bar-backdrop.block) > .flex-1 { filter: drop-shadow(3px 3px 0 var(--pr-ghost)); }
+html[data-skin="print"] #barChartCanvas:has(.chart-bar-backdrop.block) .chart-bar-item:not(:has(.chart-bar-backdrop.block)) > .flex-1 { opacity: 0.55; }
+
+html[data-skin="print"] .chart-bar-item:has(.chart-bar-backdrop.block) [id^="barValue-"] { position: relative; }
+html[data-skin="print"] .chart-bar-item:has(.chart-bar-backdrop.block) [id^="barValue-"]::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 230%; height: 260%; pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-3deg);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 30' fill='none' stroke='%23E5384F' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M6 15C7 6 30 3 48 7c10 3 6 14-13 16C17 25 3 22 5 13 6 8 15 5 26 4'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  animation: fx-reveal-right 0.6s 0.1s ease-out both;
+}
+
+/* столбцы «печатаются» снизу вверх (класс .fx-reprint вешает print.js при смене режима) */
+html[data-skin="print"].fx-reprint .chart-bar-item > .flex-1 > * {
+  animation: fx-reveal-up 0.9s steps(16, end) both; animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* ---------- 6. «Чек»: подробности выбранного периода ---------- */
+html[data-skin="print"] #selectedBarDetails {
+  --text-main: #20212B; --text-secondary: #4E5463; --text-muted: #6B7080; --border-subtle: rgba(32, 33, 43, 0.3);
+  --badge-green-text: #00875A; --badge-red-text: #C42A3E;
+  background: #FBFAF6 !important; color: #20212B !important; border: 0 !important;
+  padding-top: 18px !important; padding-bottom: 14px !important;
+  transform: rotate(-0.4deg);
+  -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 14px 51% repeat-x,
+                conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / 14px 51% repeat-x;
+  mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 14px 51% repeat-x,
+        conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / 14px 51% repeat-x;
+}
+html[data-skin="print"] #selectedBarDetails .ya-badge {                 /* бейджи - как оттиски штампа */
+  background: transparent !important; border: 1.5px solid currentColor !important; transform: rotate(-1.2deg);
+}
+html[data-skin="print"] #selectedBarDetails .ya-badge:nth-child(even) { transform: rotate(1deg); }
+html[data-skin="print"] #selectedBarDetails .ya-badge-grey { color: #20212B !important; }   /* в тёмном режиме серый бейдж был светлым на светлой бумаге */
+html[data-skin="print"] #selectedBarDetails::after {                    /* штрихкод = состав выбранного периода (--bc считает print.js) */
+  content: ""; display: block; height: 22px; margin-top: 12px;
+  background: var(--bc, #20212B);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 2px, transparent 2px 4px);
+  mask: repeating-linear-gradient(90deg, #000 0 2px, transparent 2px 4px);
+}
+
+/* всплывающее уведомление - как бумажная полоска */
+html[data-skin="print"] #toastBox { border-radius: 2px; box-shadow: 4px 4px 0 var(--pr-pink); }

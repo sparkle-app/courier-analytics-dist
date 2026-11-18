@@ -1,0 +1,24 @@
+{
+  "name": "Курьерская аналитика",
+  "short_name": "Аналитика",
+  "description": "Независимый исследовательский UI/UX-концепт аналитики дохода для курьеров доставки",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#141518",
+  "theme_color": "#141518",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "favicon.ico",
+      "sizes": "192x192",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    }
+  ]
+}

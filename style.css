@@ -1,0 +1,2316 @@
+#dataStatusBadge {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+  line-height: 1.25 !important;
+}
+
+#dataStatusBadge b {
+  display: inline !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+
+:root {
+  color-scheme: dark;
+  interpolate-size: allow-keywords;
+  accent-color: #FC3F1D;
+  --bg-outer: #0B0C0E;
+  --bg-shell: #141518;
+  --bg-card: #1C1E23;
+  --bg-elevated: #262930;
+  --bg-pill: #121316;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text-main: #F5F6F8;
+  --text-secondary: #9EA3AE;
+  --text-muted: #6E737D;
+  --ya-yellow: #FCE000;
+  --ya-yellow-hover: #F2D600;
+  --ya-yellow-text: #141518;
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --badge-grey-bg: rgba(255, 255, 255, 0.12);
+  --badge-grey-text: #F5F6F8;
+  --badge-grey-border: rgba(255, 255, 255, 0.2);
+  --badge-green-bg: rgba(16, 185, 129, 0.18);
+  --badge-green-text: #34D399;
+  --badge-green-border: rgba(16, 185, 129, 0.32);
+  --badge-red-bg: rgba(244, 63, 94, 0.16);
+  --badge-red-text: #FB7185;
+  --badge-red-border: rgba(244, 63, 94, 0.28);
+}
+
+body.light-mode {
+  color-scheme: light;
+  accent-color: #FC3F1D;
+  --bg-outer: #E5E7EB;
+  --bg-shell: #F4F5F7;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #ECEEF2;
+  --bg-pill: #E6E8EC;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.13);
+  --text-main: #18191C;
+  --text-secondary: #5C616B;
+  --text-muted: #8C919C;
+  --ya-yellow: #FCE000;
+  --ya-yellow-hover: #F0D500;
+  --ya-yellow-text: #18191C;
+  --surface-hover: rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --badge-grey-bg: #DADEE6;
+  --badge-grey-text: #18191C;
+  --badge-grey-border: rgba(0, 0, 0, 0.15);
+  --badge-green-bg: rgba(16, 185, 129, 0.16);
+  --badge-green-text: #047857;
+  --badge-green-border: rgba(16, 185, 129, 0.35);
+  --badge-red-bg: rgba(244, 63, 94, 0.14);
+  --badge-red-text: #BE123C;
+  --badge-red-border: rgba(244, 63, 94, 0.3);
+}
+
+html {
+  overflow-x: clip;
+  overscroll-behavior-y: auto;
+}
+
+/* Typography Balancing (modern-web-guidance: typography) */
+h1, h2, h3, h4, h5, h6,
+.stat-card-title,
+.ya-card-header,
+.modal-title,
+th,
+[data-balance] {
+  text-wrap: balance;
+}
+
+p,
+.instruction-text,
+.ya-note,
+.ya-alert,
+.stat-card-sub,
+[data-pretty] {
+  text-wrap: pretty;
+}
+
+/* Defer rendering for off-screen heavy sections (modern-web-guidance: defer-rendering-heavy-content) */
+.defer-render,
+#detailedAnalyticsSection,
+#courierHeatmapCard,
+#shiftsTableContainer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}
+
+/* Touch Targets on Mobile (modern-web-guidance: form-factor-adaptation / WCAG 2.5.5) */
+@media (pointer: coarse) {
+  :root {
+    --min-touch-target: 44px;
+  }
+
+  #manualTableScrollTopBtn,
+  #manualTableScrollBottomBtn,
+  .quick-scroll-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+
+  .manual-select-cell,
+  .manual-table-input,
+  .table-action-btn,
+  #manualTableAddRowBtn {
+    min-height: 44px;
+  }
+
+  #manualEditorSearchClearBtn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Native HTML5 <dialog> styling (modern-web-guidance: dialog, animate-to-from-top-layer) */
+dialog {
+  border: none;
+  padding: 0;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: 0;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transform: scale(0.97);
+  transition-property: opacity, transform, display, overlay;
+  transition-duration: 0.18s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-behavior: allow-discrete;
+}
+
+dialog:not([open]) {
+  display: none !important;
+}
+
+dialog[open],
+dialog:modal {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transform: scale(1);
+}
+
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transition-property: opacity, background-color, display, overlay;
+  transition-duration: 0.18s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-behavior: allow-discrete;
+}
+
+dialog[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+body.light-mode dialog::backdrop {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog,
+  dialog::backdrop {
+    transition-duration: 0.01s !important;
+    transform: none !important;
+  }
+  @starting-style {
+    dialog[open] {
+      transform: none !important;
+    }
+  }
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-outer);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  overflow-x: clip;
+  min-height: 100vh;
+  min-height: 100svh;
+  overscroll-behavior-y: auto;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Badges */
+.ya-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+}
+.ya-badge-grey {
+  background-color: var(--badge-grey-bg);
+  color: var(--badge-grey-text);
+  border: 1px solid var(--badge-grey-border);
+}
+.ya-badge-green {
+  background-color: var(--badge-green-bg);
+  color: var(--badge-green-text);
+  border: 1px solid var(--badge-green-border);
+}
+.ya-badge-red {
+  background-color: var(--badge-red-bg);
+  color: var(--badge-red-text);
+  border: 1px solid var(--badge-red-border);
+}
+
+/* App Containers */
+.app-shell {
+  background-color: var(--bg-shell);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.ya-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.ya-subcard {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+}
+
+/* Navigation & Action Buttons */
+.ya-nav-btn {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  border-radius: 14px;
+  transition: all 0.15s ease;
+}
+.ya-nav-btn:hover {
+  background-color: var(--bg-elevated);
+}
+
+/* Primary Action Button: Dark Slate like segmented switches */
+.btn-primary {
+  background-color: #1E293B !important;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+.btn-primary:hover {
+  opacity: 0.92;
+}
+body:not(.light-mode) .btn-primary {
+  background-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+/* Switch & Segmented Controls Base */
+.ya-switch-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+.ya-switch-card:hover {
+  border-color: var(--border-strong);
+}
+.ya-switch-card:active {
+  transform: scale(0.97);
+}
+
+/* Block 1 Switch Cards - Variant 2 (Zero-Height Cluster, 38px Ultra-Compact) */
+#block1SwitchCards {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 4px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+#block1SwitchCards .ya-switch-card {
+  min-height: 38px;
+  height: 38px;
+  padding: 2px 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Category header (top line) */
+.ya-switch-cat {
+  font-size: 7px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Current value (bottom line) - font weight 700 in BOTH states prevents jumping */
+.ya-switch-val {
+  display: none;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.15;
+  margin-top: 1px;
+  text-align: center;
+  white-space: nowrap;
+}
+.ya-switch-val.ya-switch-opt-active {
+  display: block !important;
+  background-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text-main) !important;
+}
+
+/* Block 1 Period Buttons inside the cluster */
+#block1SwitchCards #block1PeriodButtons {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 38px;
+  height: 38px;
+  padding: 2px !important;
+  border-radius: 12px !important;
+  flex: 1.35 1 0;
+  min-width: 96px;
+  gap: 1px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+#block1SwitchCards #block1PeriodButtons .ya-seg-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  padding: 0 1px;
+  border-radius: 9px;
+  white-space: nowrap;
+}
+
+/* Segmented Pill Switch for Diagram / Table (Screenshot 2) */
+#block1SwitchCards #switchChartTable.ya-switch-pill-container {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 2px !important;
+  border-radius: 9999px !important;
+  min-height: 38px;
+  height: 38px;
+  gap: 1.5px;
+  flex: 0 0 48px;
+  width: 48px;
+  min-width: 48px;
+}
+
+.ya-pill-segment {
+  flex: 1;
+  height: 100%;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+}
+
+.ya-pill-segment:hover {
+  color: var(--text-main);
+}
+
+/* Active switch color matches period buttons (Grey instead of blue) */
+.ya-pill-segment.ya-switch-opt-active {
+  background-color: #1E293B !important;
+  background: #1E293B !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+body:not(.light-mode) .ya-pill-segment.ya-switch-opt-active {
+  background-color: #334155 !important;
+  background: #334155 !important;
+  color: #F8FAFC !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+}
+
+.ya-pill-segment svg {
+  stroke: currentColor;
+  transition: stroke 0.15s ease, transform 0.15s ease;
+}
+
+.ya-pill-segment.ya-switch-opt-active svg {
+  stroke: #FFFFFF !important;
+}
+
+/* General switch option styling */
+.ya-switch-opt {
+  display: block;
+  text-align: center;
+  font-size: 10.5px;
+  line-height: 1.2;
+  padding: 4px 2px;
+  border-radius: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.ya-segmented {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 3px;
+}
+.ya-seg-btn {
+  border-radius: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+.ya-seg-btn:hover {
+  color: var(--text-main);
+}
+
+/* Active segmented button & switch styling: Slate Grey like text under indicator and mode */
+.ya-seg-btn-active,
+.ya-switch-opt.ya-switch-opt-active {
+  background-color: #1E293B !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+body:not(.light-mode) .ya-seg-btn-active,
+body:not(.light-mode) .ya-switch-opt.ya-switch-opt-active {
+  background-color: #334155 !important;
+  color: #F8FAFC !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Custom Scrollbar (W3C standard via modern-web-guidance) */
+.custom-scroll {
+  --scrollbar-thumb: rgba(156, 163, 175, 0.4);
+  --scrollbar-track: transparent;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+body:not(.light-mode) .custom-scroll {
+  --scrollbar-thumb: rgba(156, 163, 175, 0.3);
+}
+
+/* Legacy fallback for WebKit/Blink browsers */
+@supports not (scrollbar-color: auto) {
+  .custom-scroll {
+    scrollbar-width: auto;
+  }
+  .custom-scroll::-webkit-scrollbar {
+    height: 5px;
+    width: 5px;
+  }
+  .custom-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 9999px;
+  }
+}
+
+/* Range Inputs & Checkboxes */
+input[type="range"] {
+  accent-color: #1E293B;
+}
+body:not(.light-mode) input[type="range"] {
+  accent-color: #475569;
+}
+input[type="checkbox"] {
+  accent-color: #1E293B;
+}
+body:not(.light-mode) input[type="checkbox"] {
+  accent-color: #334155;
+}
+
+/* Активный пресет транспорта в настройках (темный сланец) */
+.ya-preset-btn-active {
+  background-color: #1E293B !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+body:not(.light-mode) .ya-preset-btn-active {
+  background-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+/* Heatmap Grid */
+.heat-cell {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+@media (hover: hover) and (pointer: fine) {
+  .heat-cell:hover {
+    transform: scale(1.04);
+    z-index: 5;
+  }
+}
+.heat-cell-selected {
+  outline: 2px solid var(--text-main);
+  box-shadow: 0 0 0 2px var(--ya-yellow);
+  z-index: 10;
+}
+
+/* Dragging state for column reorder */
+.col-reorder-item {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.col-drag-active {
+  outline: 2px solid var(--ya-yellow);
+  background-color: var(--bg-card) !important;
+  transform: scale(1.01);
+  z-index: 20;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  touch-action: none;
+}
+
+/* Accessibility focus styles */
+:focus-visible {
+  outline: 2px solid var(--ya-yellow);
+  outline-offset: 2px;
+}
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--ya-yellow);
+  outline-offset: 1px;
+}
+
+.ya-switch-card, .ya-nav-btn, .btn-primary {
+  touch-action: manipulation;
+}
+
+/* Leaflet Map Tooltips */
+.district-map-tooltip {
+  background: rgba(20, 21, 24, 0.92) !important;
+  border: 1.5px solid #FCE000 !important;
+  border-radius: 10px !important;
+  color: #FFFFFF !important;
+  font-family: 'Inter', sans-serif !important;
+  padding: 4px 8px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+}
+.district-map-tooltip::before {
+  display: none !important;
+}
+
+/* Utility Semantic Color Classes */
+.text-main { color: var(--text-main) !important; }
+.text-sec { color: var(--text-secondary); }
+.text-mut { color: var(--text-muted); }
+.border-subtle { border-color: var(--border-subtle); }
+.border-strong { border-color: var(--border-strong); }
+.bg-elevated { background-color: var(--bg-elevated); }
+.bg-card { background-color: var(--bg-card); }
+
+/* Navigation buttons text and SVG icon color support across themes */
+.ya-nav-btn {
+  color: var(--text-main);
+}
+body:not(.light-mode) .ya-nav-btn,
+body:not(.light-mode) .ya-nav-btn button,
+body:not(.light-mode) .ya-nav-btn svg {
+  color: #F8FAFC !important;
+}
+body.light-mode .ya-nav-btn,
+body.light-mode .ya-nav-btn button,
+body.light-mode .ya-nav-btn svg {
+  color: #18191C !important;
+}
+body:not(.light-mode) .ya-nav-btn span.w-px {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+body.light-mode .ya-nav-btn span.w-px {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Detailed table column tint highlights */
+/* Приятная, свежая натуральная зеленая подсветка (Прибыль) */
+.table-col-net {
+  background-color: rgba(34, 197, 94, 0.08) !important;
+}
+body.light-mode .table-col-net {
+  background-color: #EDF7EE !important;
+}
+
+/* 100% непрозрачный фон для липких заголовков и итогов таблицы, чтобы скроллящиеся строки не просвечивали */
+.table-sticky-header th.table-col-net,
+.table-sticky-footer td.table-col-net {
+  background-color: #1A2E20 !important;
+}
+body.light-mode .table-sticky-header th.table-col-net,
+body.light-mode .table-sticky-footer td.table-col-net {
+  background-color: #E2F2E5 !important;
+}
+
+/* Нейтральная серая подсветка столбца Начислено (в тон заголовкам таблицы) */
+.table-col-gross {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+body.light-mode .table-col-gross {
+  background-color: #ECEEF2 !important;
+}
+
+.table-sticky-header th.table-col-gross,
+.table-sticky-footer td.table-col-gross {
+  background-color: #262930 !important;
+}
+body.light-mode .table-sticky-header th.table-col-gross,
+body.light-mode .table-sticky-footer td.table-col-gross {
+  background-color: #ECEEF2 !important;
+}
+
+/* ------------------------------------------------------------------------- */
+/* РЕЖИМ ОТОБРАЖЕНИЯ ПК (ДЕСКТОП)                                            */
+/* ------------------------------------------------------------------------- */
+/* =========================================================================
+   ОБЕРТКА СТРАНИЦЫ И БОКОВАЯ СЕРВИСНАЯ ПЛАШКА СТЕНДА (СЛЕВА ОТ ПРИЛОЖЕНИЯ)
+   Центрирование строго по приложению (#layoutContainer), плашка в левой колонке
+   ========================================================================= */
+.app-root-wrapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  column-gap: 1.25rem;
+  align-items: start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-root-wrapper::after {
+  content: "";
+  grid-column: 3;
+  display: block;
+}
+
+#leftSidebar {
+  grid-column: 1;
+  justify-self: end;
+  width: 232px;
+  min-width: 232px;
+  max-width: 250px;
+  position: sticky;
+  top: 12px;
+  align-self: flex-start;
+  z-index: 30;
+  box-sizing: border-box;
+  margin: 0 !important;
+}
+
+#topBannerContainer {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 !important;
+}
+
+body:not(.desktop-mode) #layoutContainer {
+  grid-column: 2;
+  justify-self: center;
+  width: 430px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0 !important;
+}
+
+/* Адаптив для узких экранов (менее 780px): плашка встает над приложением */
+@media (max-width: 780px) {
+  .app-root-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+  }
+  .app-root-wrapper::after {
+    display: none !important;
+  }
+  #leftSidebar, #topBannerContainer {
+    width: 100% !important;
+    max-width: 430px !important;
+    min-width: 0 !important;
+    position: static !important;
+    margin-bottom: 0.25rem !important;
+  }
+}
+
+body.desktop-mode {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+body.desktop-mode .app-root-wrapper {
+  grid-template-columns: minmax(180px, 1fr) minmax(auto, 1180px) minmax(180px, 1fr) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  column-gap: 1.25rem !important;
+}
+
+body.desktop-mode #leftSidebar {
+  grid-column: 1 !important;
+  justify-self: end !important;
+  width: 232px !important;
+  min-width: 232px !important;
+  max-width: 250px !important;
+  position: sticky !important;
+  top: 12px !important;
+  align-self: flex-start !important;
+  margin: 0 !important;
+}
+
+body.desktop-mode #layoutContainer {
+  grid-column: 2 !important;
+  justify-self: center !important;
+  width: 100% !important;
+  max-width: 1160px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 1024px) {
+  body.desktop-mode .app-root-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+  }
+  body.desktop-mode .app-root-wrapper::after {
+    display: none !important;
+  }
+  body.desktop-mode #leftSidebar,
+  body.desktop-mode #topBannerContainer {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    position: static !important;
+  }
+}
+
+body.desktop-mode #screenMain,
+body.desktop-mode #screenMiddleSpec,
+body.desktop-mode #screenSettings {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Прокрутка модалки "На чай автору": изолируем от скролла фона */
+#authorTipScrollBody {
+  overscroll-behavior-y: contain;
+}
+#authorTipScrollHintBar.hidden {
+  display: none !important;
+}
+
+/* Панель управления Блоком 1 в десктопном режиме: компактный кластер слева без растягивания на всю ширину */
+body.desktop-mode #block1ControlsWrapper {
+  display: block !important;
+  width: auto !important;
+}
+
+body.desktop-mode #block1SwitchCards {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 6px !important;
+  width: auto !important;
+  max-width: 100% !important;
+}
+
+body.desktop-mode #block1SwitchCards .ya-switch-card {
+  width: auto !important;
+  min-width: 76px !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  padding: 2px 8px !important;
+  flex: 0 1 auto !important;
+}
+
+body.desktop-mode #block1SwitchCards #block1PeriodButtons {
+  width: auto !important;
+  min-width: 110px !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  padding: 2px 3px !important;
+  flex: 0 1 auto !important;
+  gap: 1.5px !important;
+}
+
+body.desktop-mode #block1SwitchCards #block1PeriodButtons .ya-seg-btn {
+  padding: 2px 8px !important;
+  font-size: 10.5px !important;
+}
+
+body.desktop-mode #block1SwitchCards #switchChartTable {
+  width: 48px !important;
+  min-width: 48px !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  flex: 0 1 auto !important;
+}
+
+#chartLegendContainer > div:not(#legendGrossBg) b {
+  margin-left: 0 !important;
+}
+
+body.desktop-mode #chartLegendContainer {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0.5rem !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  touch-action: pan-x pan-y;
+}
+
+#chartLegendContainer > .hidden,
+body.desktop-mode #chartLegendContainer > div.hidden,
+body.desktop-mode #chartLegendContainer > div:not(#legendGrossBg).hidden {
+  display: none !important;
+}
+
+body.desktop-mode #chartLegendContainer > div:not(#legendGrossBg):not(.hidden) {
+  flex: 0 0 120px !important;
+  width: 120px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  grid-column: auto !important;
+}
+
+body.desktop-mode #chartLegendContainer > div:not(#legendGrossBg) b {
+  margin-left: 0 !important;
+}
+
+body.desktop-mode #legendGrossBg {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  padding-top: 0 !important;
+  margin-left: 0.5rem !important;
+  border-left: none !important;
+  padding-left: 0 !important;
+  white-space: nowrap !important;
+  grid-column: auto !important;
+}
+
+.desktop-grid-split {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+body.desktop-mode .desktop-grid-split {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(415px, 35%) !important;
+  grid-template-areas:
+    "block1 block1"
+    "spoiler spoiler"
+    "block3 block2" !important;
+  column-gap: 1.25rem !important;
+  row-gap: 0.35rem !important;
+  align-items: start !important;
+}
+
+.area-spoiler {
+  grid-area: spoiler;
+}
+
+body.desktop-mode .area-block2 {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+body.desktop-mode .area-block2 table {
+  min-width: 380px !important;
+}
+
+body.desktop-mode .area-block3 {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+@media (max-width: 960px) {
+  body.desktop-mode .desktop-grid-split {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "block1"
+      "spoiler"
+      "block2"
+      "block3" !important;
+  }
+}
+
+/* Настройки расходов: в мобильной версии пресеты вверху, день старта внизу; в ПК — статьи слева, пресеты и день старта справа в столбик */
+#settingsExpensesSplit {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+body.desktop-mode #settingsExpensesSplit {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 280px !important;
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "expenses presets"
+    "expenses weekstart"
+    "expenses ." !important;
+  gap: 1.25rem 1.5rem !important;
+  align-items: start !important;
+}
+
+body.desktop-mode #settingsExpensesLeft {
+  grid-area: expenses !important;
+  min-width: 0 !important;
+}
+
+body.desktop-mode #settingsPresetsBlock {
+  grid-area: presets !important;
+  min-width: 0 !important;
+}
+
+body.desktop-mode #weekStartBlock {
+  grid-area: weekstart !important;
+  min-width: 0 !important;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 0.75rem;
+}
+
+body.desktop-mode #presetButtonsContainer {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+}
+
+.area-block1,
+.area-block2,
+.area-block3 {
+  min-width: 0 !important;
+}
+
+.area-block1 {
+  grid-area: block1;
+}
+
+.area-block2 {
+  grid-area: block2;
+}
+
+.area-block3 {
+  grid-area: block3;
+}
+
+/* ------------------------------------------------------------------------- */
+/* СКРОЛЛ ДИАГРАММЫ И ТАБЛИЦЫ ДОХОДОВ                                       */
+/* ------------------------------------------------------------------------- */
+#barScrollContainer {
+  overflow-x: auto;
+  overflow-y: hidden !important;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  touch-action: pan-x pan-y;
+}
+
+.chart-scroll-track {
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  height: 100% !important;
+  width: max-content;
+  min-width: 100% !important;
+  box-sizing: border-box !important;
+  gap: 14px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+#areaBlock2 .overflow-x-auto,
+#areaBlock3 .overflow-x-auto {
+  overflow-y: hidden !important;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  touch-action: pan-x pan-y;
+}
+
+.chart-bar-item {
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 46px !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  padding: 2px 1px !important;
+}
+
+.chart-bar-item:focus,
+.chart-bar-item:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+
+/* Полосатая штриховка для части «Начислено» (Gross) */
+.chart-gross-striped {
+  opacity: 0.35;
+  background-color: #F8FAFC;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #94A3B8,
+    #94A3B8 1.5px,
+    #FFFFFF 1.5px,
+    #FFFFFF 3.5px
+  );
+  border: 1px solid #CBD5E1;
+  border-bottom: none;
+}
+body.light-mode .chart-gross-striped {
+  opacity: 0.52 !important;
+}
+body:not(.light-mode) .chart-gross-striped {
+  background-color: #1E293B;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #64748B,
+    #64748B 1.5px,
+    #0F172A 1.5px,
+    #0F172A 3.5px
+  );
+  border-color: #475569;
+}
+
+/* 1.5px разделительные полоски между цветными сегментами */
+.chart-stack-divider > div {
+  box-sizing: border-box;
+}
+.chart-stack-divider > div + div {
+  border-bottom: 1.5px solid var(--bg-card, #FFFFFF) !important;
+}
+
+/* Светло-серый ореол-подложка активного столбца на всю высоту */
+.chart-bar-backdrop {
+  background-color: rgba(215, 220, 230, 0.42);
+}
+body:not(.light-mode) .chart-bar-backdrop {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ya-benchmarks-btn {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  transition: all 0.15s ease;
+}
+.ya-benchmarks-btn:hover:not(:disabled) {
+  background-color: var(--bg-elevated);
+}
+.ya-benchmarks-btn.benchmarks-active {
+  background-color: var(--bg-card);
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+}
+.ya-benchmarks-btn.benchmarks-inactive {
+  opacity: 0.65;
+  color: var(--text-mut);
+  background-color: transparent;
+}
+.ya-benchmarks-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
+.expense-help-btn {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  background-color: rgba(244, 63, 94, 0.18);
+  color: #FB7185;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+.expense-help-btn:hover {
+  background-color: #E11D48;
+  color: #FFFFFF;
+  border-color: #E11D48;
+  transform: scale(1.08);
+}
+
+.table-scroll-container {
+  max-height: 380px;
+  overflow-y: auto;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  touch-action: pan-x pan-y;
+}
+
+.table-sticky-header th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: var(--bg-elevated);
+}
+.table-sticky-header th.table-col-interactive {
+  cursor: pointer;
+  user-select: none;
+}
+.table-sticky-header th.table-col-interactive:hover {
+  filter: brightness(0.96);
+}
+body:not(.light-mode) .table-sticky-header th.table-col-interactive:hover {
+  filter: brightness(1.12);
+}
+
+.table-sticky-footer td {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  background-color: var(--bg-elevated);
+}
+
+/* Липкий первый столбец таблицы (Дата / Итого) — фиксирован при горизонтальной прокрутке */
+.table-col-sticky-first {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 15 !important;
+}
+
+/* Верхний левый угол (Заголовок "Дата"): фиксирован одновременно по вертикали и горизонтали */
+.table-sticky-header th.table-col-sticky-first {
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 35 !important;
+  background-color: var(--bg-elevated) !important;
+}
+
+/* Нижний левый угол (Футер "ИТОГО / СР."): фиксирован одновременно по вертикали и горизонтали */
+.table-sticky-footer td.table-col-sticky-first {
+  position: sticky !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  z-index: 35 !important;
+  background-color: var(--bg-elevated) !important;
+}
+
+/* Кнопка фильтра в заголовке столбца таблицы (v14.12.4) */
+.table-col-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  opacity: 0.35;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  flex-shrink: 0;
+}
+th:hover .table-col-filter-btn:not(.table-col-filter-btn-active) {
+  opacity: 0.75;
+}
+.table-col-filter-btn:hover {
+  opacity: 1 !important;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+body:not(.light-mode) .table-col-filter-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+.table-col-filter-btn:active {
+  transform: scale(0.92);
+}
+.table-col-filter-btn-active {
+  opacity: 1 !important;
+  color: #B48900 !important;
+  background-color: rgba(252, 224, 0, 0.28) !important;
+}
+body:not(.light-mode) .table-col-filter-btn-active {
+  color: var(--accent, #FCE000) !important;
+  background-color: rgba(252, 224, 0, 0.22) !important;
+}
+
+/* Всплывающее окно фильтра таблицы (v14.12.0) */
+#tableFilterPopover {
+  box-shadow: 0 14px 34px -4px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--border-subtle);
+}
+
+/* Подстроки при разбивке даты по видам транспорта */
+.table-subrow {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+body:not(.light-mode) .table-subrow {
+  background-color: rgba(255, 255, 255, 0.025);
+}
+.table-subrow td.table-col-sticky-first {
+  background-color: #FAFBFD !important;
+  background-color: color-mix(in oklab, var(--bg-card) 97%, var(--text-main) 3%) !important;
+}
+body:not(.light-mode) .table-subrow td.table-col-sticky-first {
+  background-color: #202329 !important;
+  background-color: color-mix(in oklab, var(--bg-card) 97%, var(--text-main) 3%) !important;
+}
+
+/* Вложенные строки отдельных заказов в таблице дохода */
+.table-order-row {
+  background-color: rgba(0, 0, 0, 0.032);
+}
+body:not(.light-mode) .table-order-row {
+  background-color: rgba(255, 255, 255, 0.038);
+}
+.table-order-row td {
+  font-size: 9.5px;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.table-order-row td.table-col-sticky-first {
+  background-color: #F4F5F8 !important;
+  background-color: color-mix(in oklab, var(--bg-card) 93%, var(--text-main) 7%) !important;
+}
+body:not(.light-mode) .table-order-row td.table-col-sticky-first {
+  background-color: #24272F !important;
+  background-color: color-mix(in oklab, var(--bg-card) 93%, var(--text-main) 7%) !important;
+}
+
+
+
+/* Weather Boost Button Active State (Slate Grey like switches) */
+.btn-weather-active {
+  background-color: #1E293B !important;
+  color: #FFFFFF !important;
+  border-color: #1E293B !important;
+}
+body:not(.light-mode) .btn-weather-active {
+  background-color: #334155 !important;
+  color: #F8FAFC !important;
+  border-color: #334155 !important;
+}
+
+/* Slate Action Button (replaces yellow in district modal) */
+.ya-btn-slate {
+  background-color: #1E293B !important;
+  color: #FFFFFF !important;
+}
+.ya-btn-slate:hover {
+  background-color: #0F172A !important;
+}
+body:not(.light-mode) .ya-btn-slate {
+  background-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+body:not(.light-mode) .ya-btn-slate:hover {
+  background-color: #475569 !important;
+}
+
+/* Benchmarks Dot Indicators */
+.benchmarks-dot-on {
+  background-color: #1E293B !important;
+  border: 1.5px solid #1E293B !important;
+}
+body:not(.light-mode) .benchmarks-dot-on {
+  background-color: #CBD5E1 !important;
+  border: 1.5px solid #CBD5E1 !important;
+}
+.benchmarks-dot-off {
+  background-color: transparent !important;
+  border: 1.5px solid #94A3B8 !important;
+}
+body:not(.light-mode) .benchmarks-dot-off {
+  border-color: #64748B !important;
+}
+
+/* Бейдж версии в сервисной плашке стенда (в цвет темных переключателей) */
+.version-badge {
+  background-color: #1E293B !important;
+  color: #FFFFFF !important;
+}
+body:not(.light-mode) .version-badge {
+  background-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+/* Поддержка горизонтальной и вертикальной прокрутки зажатием ЛКМ (только на устройствах с мышью) */
+@media (hover: hover) and (pointer: fine) {
+  .table-scroll-container,
+  .overflow-x-auto.custom-scroll,
+  #barScrollContainer,
+  #tableFilterValuesList {
+    cursor: grab;
+  }
+  .table-scroll-container:active,
+  .overflow-x-auto.custom-scroll:active,
+  #barScrollContainer:active,
+  #tableFilterValuesList:active {
+    cursor: grabbing !important;
+    user-select: none !important;
+  }
+}
+.table-scroll-container.active-dragging,
+.overflow-x-auto.custom-scroll.active-dragging,
+#barScrollContainer.active-dragging,
+#tableFilterValuesList.active-dragging {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+body.is-dragging-scroll {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+body.is-dragging-scroll * {
+  user-select: none !important;
+}
+
+/* =========================================================================
+   МОДАЛЬНОЕ ОКНО: НА ЧАЙ АВТОРУ & ИНТЕРАКТИВНАЯ ЧАЙНАЯ СТАНЦИЯ (v13.16.0)
+   ========================================================================= */
+#authorTipModal .tea-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+#authorTipModal .tea-chip {
+  --t: #3A8DFF;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 8px 6px 9px;
+  display: grid;
+  justify-items: center;
+  transition: transform .15s, box-shadow .25s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 8.5px 18px -14px rgba(20,22,30,.35);
+  cursor: pointer;
+}
+#authorTipModal .tea-chip::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 2.5px;
+  background: var(--t);
+  opacity: .85;
+}
+#authorTipModal .tea-chip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -24px;
+  width: 96px;
+  height: 75px;
+  margin-left: -48px;
+  background: radial-gradient(circle, var(--t) 0%, transparent 72%);
+  opacity: .07;
+  transition: opacity .3s;
+  pointer-events: none;
+}
+#authorTipModal .tea-chip:hover::after,
+#authorTipModal .tea-chip.pop::after {
+  opacity: .16;
+}
+#authorTipModal .tea-chip:active {
+  transform: scale(.96);
+}
+#authorTipModal .tea-chip.pop {
+  animation: tea-pp .5s cubic-bezier(.3,1.6,.5,1);
+}
+#authorTipModal .tea-pile {
+  height: 48px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 1.5px;
+  margin-top: 2px;
+}
+#authorTipModal .tea-pile div {
+  display: flex;
+  gap: 1.5px;
+}
+#authorTipModal .tea-pile i {
+  width: var(--s);
+  height: calc(var(--s) * 1.2);
+  border-radius: 2px;
+  background: linear-gradient(#FCF7EA, #E3D6BC);
+  border-top: 1.5px solid var(--t);
+  display: inline-block;
+}
+#authorTipModal .tea-chip.pop .tea-pile i {
+  animation: tea-jg .5s calc(var(--r)*45ms) cubic-bezier(.3,1.8,.5,1);
+}
+@keyframes tea-jg { 40% { transform: translateY(-5px); } }
+@keyframes tea-pp { 40% { transform: scale(1.05); } }
+
+#authorTipModal .tea-chip small {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.15;
+  margin-top: 5px;
+  white-space: nowrap;
+  display: block;
+  letter-spacing: -.01em;
+  color: var(--text-main);
+}
+
+#authorTipModal .tea-stage {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(#E7ECF6, #F8F9FC);
+  border: 1px solid var(--border-subtle);
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  touch-action: pan-y;
+}
+body:not(.light-mode) #authorTipModal .tea-stage {
+  background: linear-gradient(#1A202C, #121620);
+}
+#authorTipModal .tea-stage canvas {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+  touch-action: pan-y;
+  cursor: grab;
+}
+#authorTipModal .tea-stage canvas:active {
+  cursor: grabbing;
+}
+
+#authorTipModal .tea-gp {
+  position: absolute;
+  z-index: 3;
+  left: 8px;
+  right: 8px;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px 5px 10px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0.25));
+  border: 1px solid rgba(0,0,0,0.1);
+  backdrop-filter: blur(20px) saturate(1.8) brightness(1.04);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8) brightness(1.04);
+  box-shadow: 0 10px 24px -12px rgba(10,14,30,.25), inset 0 1px 0 rgba(255,255,255,.6);
+}
+body:not(.light-mode) #authorTipModal .tea-gp {
+  background: linear-gradient(135deg, rgba(30,41,59,0.75), rgba(30,41,59,0.3));
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 10px 24px -12px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+#authorTipModal .tea-cnt {
+  display: grid;
+  line-height: 1;
+  min-width: 44px;
+}
+#authorTipModal .tea-cnt b {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -.05em;
+  display: inline-block;
+  transform-origin: left bottom;
+  color: var(--text-main);
+}
+#authorTipModal .tea-cnt span {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--text-sec);
+  margin-top: 2px;
+}
+#authorTipModal .tea-cnt b.bump {
+  animation: tea-bm .35s cubic-bezier(.3,1.7,.5,1);
+}
+@keyframes tea-bm { 40% { transform: scale(1.28); } }
+
+#authorTipModal .tea-gb {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.7);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  transition: transform .12s, background .2s;
+  cursor: pointer;
+  color: var(--text-main);
+}
+body:not(.light-mode) #authorTipModal .tea-gb {
+  background: rgba(30,41,59,0.7);
+  border-color: rgba(255,255,255,0.1);
+  color: #F8FAFC;
+}
+#authorTipModal .tea-gb:hover {
+  background: rgba(255,255,255,0.95);
+}
+body:not(.light-mode) #authorTipModal .tea-gb:hover {
+  background: rgba(51,65,85,0.95);
+}
+#authorTipModal .tea-gb:active {
+  transform: scale(.94);
+}
+#authorTipModal .tea-gb svg {
+  flex: none;
+}
+#authorTipModal .tea-gb .lbl {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+#authorTipModal .tea-gp-info {
+  display: flex;
+  align-items: center;
+  gap: 3.5px;
+  font-size: 8px;
+  font-weight: 500;
+  color: var(--text-sec);
+  opacity: .85;
+  line-height: 1.2;
+}
+
+#authorTipModal .tea-ts {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 65px;
+  transform: translate(-50%,0);
+  background: var(--text-main);
+  color: var(--bg-card);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+#authorTipModal .tea-ts.on {
+  animation: tea-tt 2.4s ease both;
+}
+@keyframes tea-tt {
+  0% { opacity: 0; transform: translate(-50%, 10px); }
+  12%, 80% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -8px); }
+}
+
+/* =========================================================================
+   РЕОРГАНИЗОВАННЫЙ КЛАСТЕР КНОПОК ПЛАШКИ (ПК И МОБИЛЬНЫЙ РЕЖИМЫ, v13.16.2)
+   ========================================================================= */
+.sidebar-divider {
+  width: 100% !important;
+  height: 1px !important;
+  background-color: var(--border-subtle) !important;
+  border: none !important;
+  margin: 8px 0 !important;
+  flex-shrink: 0 !important;
+  display: block !important;
+}
+
+.banner-controls-cluster {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  width: 100% !important;
+}
+
+.banner-cluster-theme-layout {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0.375rem !important;
+  width: 100% !important;
+}
+
+.banner-cluster-divider-1 {
+  width: 100% !important;
+  height: 1px !important;
+  background-color: var(--border-subtle) !important;
+  border: none !important;
+  margin: 8px 0 !important;
+  display: block !important;
+}
+
+.banner-cluster-source-import {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.375rem !important;
+  width: 100% !important;
+}
+
+.banner-cluster-divider-2 {
+  display: none !important;
+}
+
+.banner-cluster-tip {
+  display: none !important;
+}
+
+#btnAuthorTipDesktop {
+  display: flex !important;
+}
+
+/* Мобильный режим: экраны узкой ширины (менее 780px) */
+@media (max-width: 780px) {
+  #topBannerContainer {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  .banner-controls-cluster {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    justify-content: space-between !important;
+    gap: 0.375rem !important;
+    width: 100% !important;
+  }
+
+  .banner-cluster-theme-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.375rem !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .banner-cluster-divider-1,
+  .banner-cluster-divider-2 {
+    width: 1px !important;
+    height: auto !important;
+    align-self: stretch !important;
+    border: none !important;
+    background-color: var(--border-subtle) !important;
+    margin: 0.125rem 0.125rem !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+  }
+
+  .banner-cluster-source-import {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 0.375rem !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .banner-cluster-source-import > div:first-child {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+  }
+
+  .banner-cluster-source-import > div:first-child span {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    display: inline !important;
+  }
+
+  #btnAuthorTipMobile span.block.font-bold {
+    font-size: 11.5px !important;
+    line-height: 1.2 !important;
+  }
+
+  #btnAuthorTipMobile span.block.text-sec {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+  }
+
+  .banner-cluster-source-import .flex.items-center {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  #btnResetData.hidden {
+    display: none !important;
+  }
+
+  #btnResetData:not(.hidden) {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.2rem 0.3rem !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  #importSplitWrapper,
+  #saveSplitWrapper {
+    flex-shrink: 0 !important;
+  }
+
+  .banner-cluster-tip {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  #btnAuthorTipMobile {
+    padding: 0.25rem 0.35rem !important;
+    gap: 0.25rem !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #btnAuthorTipMobile > span.leading-tight {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+  }
+
+  #btnAuthorTipMobile span.block {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  #btnAuthorTipMobile span.w-6 {
+    width: 1.35rem !important;
+    height: 1.35rem !important;
+    min-width: 1.35rem !important;
+  }
+
+  #btnAuthorTipMobile svg {
+    width: 0.8rem !important;
+    height: 0.8rem !important;
+  }
+
+  #saveSplitWrapper button,
+  #importSplitWrapper button {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+  }
+
+  #lblSaveBtnText,
+  #lblImportBtnText {
+    font-size: 11px !important;
+  }
+
+
+
+  #btnAuthorTipDesktop {
+    display: none !important;
+  }
+
+  .banner-style-desktop {
+    display: none !important;
+  }
+
+  .banner-theme-desktop {
+    display: none !important;
+  }
+
+  .banner-layout-desktop {
+    display: none !important;
+  }
+
+  #themeLayoutSplitMobile {
+    display: flex !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+  }
+
+  #styleMobileWrapper {
+    display: block !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+  }
+
+  #btnBannerCollapseMobile {
+    display: flex !important;
+  }
+
+  #bannerCollapsibleBody.hidden {
+    display: none !important;
+  }
+
+  .save-text-desktop {
+    display: none !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .banner-controls-cluster {
+    flex-wrap: wrap !important;
+    row-gap: 0.5rem !important;
+    justify-content: flex-start !important;
+  }
+  .banner-cluster-theme-layout {
+    width: 44px !important;
+    min-width: 44px !important;
+    flex-shrink: 0 !important;
+    align-self: center !important;
+    justify-content: center !important;
+  }
+  .banner-cluster-divider-1 {
+    margin: 0 0.5rem !important;
+    align-self: stretch !important;
+  }
+  .banner-cluster-source-import {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+  }
+  .banner-cluster-divider-2 {
+    display: none !important;
+  }
+  .banner-cluster-tip {
+    flex: 1 0 100% !important;
+    margin-top: 0.125rem !important;
+  }
+}
+
+@media (min-width: 781px) {
+  .banner-style-desktop {
+    display: inline-flex !important;
+  }
+
+  .banner-theme-desktop {
+    display: flex !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .banner-layout-desktop {
+    display: flex !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  #themeLayoutSplitMobile {
+    display: none !important;
+  }
+
+  #styleMobileWrapper {
+    display: none !important;
+  }
+
+  #btnBannerCollapseMobile {
+    display: none !important;
+  }
+
+  #bannerCollapsibleBody {
+    display: flex !important;
+  }
+
+  #authorTipModal #authorTipScrollHintBar {
+    display: none !important;
+  }
+
+  #authorTipModal #authorTipFooter {
+    display: flex !important;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
+
+  .save-text-desktop {
+    display: inline !important;
+  }
+}
+#bannerCollapseChevron.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* =========================================================================
+   КНОПКА-СПОЙЛЕР РАСКРЫТИЯ БЛОКОВ 2 И 3 (v13.20.0)
+   ========================================================================= */
+.spoiler-btn-blue {
+  background-color: #3574D2 !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+.spoiler-btn-blue:hover {
+  background-color: #2A64BD !important;
+}
+body.dark-mode .spoiler-btn-blue {
+  background-color: #2F69BF !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+body.dark-mode .spoiler-btn-blue:hover {
+  background-color: #265AA6 !important;
+}
+
+.spoiler-btn-grey {
+  background-color: #E6E8EC !important;
+  color: #475569 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+.spoiler-btn-grey:hover {
+  background-color: #DADDE3 !important;
+  color: #1E293B !important;
+}
+body.dark-mode .spoiler-btn-grey {
+  background-color: #2B2F38 !important;
+  color: #94A3B8 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+body.dark-mode .spoiler-btn-grey:hover {
+  background-color: #353A44 !important;
+  color: #E2E8F0 !important;
+}
+
+#spoilerChevronIcon.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.area-block2.hidden,
+.area-block3.hidden {
+  display: none !important;
+}
+
+
+/* ------------------------------------------------------------------------- */
+/* ВЫПАДАЮЩИЕ СПИСКИ И Z-INDEX СТЕКИНГ В СЕРВИСНОЙ ПЛАШКЕ                   */
+/* ------------------------------------------------------------------------- */
+.banner-cluster-theme-layout {
+  position: relative;
+  z-index: 25;
+}
+
+.banner-cluster-source-import {
+  position: relative;
+  z-index: 20;
+}
+
+#importRowContainer {
+  position: relative;
+  z-index: 15;
+}
+
+#saveSplitWrapper {
+  position: relative;
+  z-index: 10;
+}
+
+/* Активное меню стиля: поднимаем тему/стиль над источником/импортом */
+.banner-cluster-theme-layout.dropdown-active,
+.banner-cluster-theme-layout:has(#styleDropdownMenu:not(.hidden)),
+.banner-cluster-theme-layout:has(#styleDropdownMenuMobile:not(.hidden)) {
+  z-index: 100 !important;
+}
+
+#styleSplitWrapper.dropdown-active,
+#styleMobileWrapper.dropdown-active,
+.banner-cluster-theme-layout:has(#styleDropdownMenu:not(.hidden)) #styleSplitWrapper,
+.banner-cluster-theme-layout:has(#styleDropdownMenuMobile:not(.hidden)) #styleMobileWrapper {
+  z-index: 100 !important;
+}
+
+/* Активное меню импорта: поднимаем импорт над синхронизацией */
+.banner-cluster-source-import.dropdown-active,
+.banner-cluster-source-import:has(#importDropdownMenu:not(.hidden)) {
+  z-index: 100 !important;
+}
+
+#importRowContainer.dropdown-active,
+#importSplitWrapper.dropdown-active,
+.banner-cluster-source-import:has(#importDropdownMenu:not(.hidden)) #importRowContainer,
+.banner-cluster-source-import:has(#importDropdownMenu:not(.hidden)) #importSplitWrapper {
+  z-index: 100 !important;
+}
+
+.banner-cluster-source-import:has(#importDropdownMenu:not(.hidden)) #saveSplitWrapper {
+  z-index: 1 !important;
+}
+
+/* Активное меню синхронизации */
+.banner-cluster-source-import:has(#saveDropdownMenu:not(.hidden)) {
+  z-index: 100 !important;
+}
+
+#saveSplitWrapper.dropdown-active,
+.banner-cluster-source-import:has(#saveDropdownMenu:not(.hidden)) #saveSplitWrapper {
+  z-index: 100 !important;
+}
+
+#styleDropdownMenu,
+#styleDropdownMenuMobile,
+#importDropdownMenu,
+#saveDropdownMenu {
+  z-index: 110 !important;
+}
+
+/* Компактный отступ кнопки-спойлера под блоком 1 */
+#blocksSpoilerWrapper {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
+/* ------------------------------------------------------------------------- */
+/* КОМПАКТНЫЙ НИЖНИЙ ОТСТУП ПЛАШКИ ПРИЛОЖЕНИЯ ПРИ СВЕРНУТЫХ БЛОКАХ 2 И 3   */
+/* ------------------------------------------------------------------------- */
+#screenMain.screen-blocks-collapsed,
+#screenMain:has(#areaBlock2.hidden) {
+  padding-bottom: 0.35rem !important;
+}
+
+@media (min-width: 781px) {
+  #screenMain.screen-blocks-collapsed,
+  #screenMain:has(#areaBlock2.hidden) {
+    padding-bottom: 0 !important;
+  }
+}
+
+
+/* Отключённые серверно-зависимые кнопки и недоступные элементы (перекрывают theme.css во всех скинах и режимах) */
+.btn-plan-disabled.btn-plan-disabled,
+.btn-primary.btn-plan-disabled,
+.ya-btn-slate.btn-plan-disabled,
+.ya-card.btn-plan-disabled,
+.ya-subcard.btn-plan-disabled,
+.ya-seg-btn.btn-plan-disabled,
+.ya-badge-red.btn-plan-disabled,
+button:disabled.btn-plan-disabled {
+  background-color: var(--bg-elevated) !important;
+  background-image: none !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--border-subtle) !important;
+  opacity: 0.62 !important;
+  filter: grayscale(0.85) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-plan-disabled.btn-plan-disabled:hover,
+.btn-plan-disabled.btn-plan-disabled:active {
+  opacity: 0.62 !important;
+  transform: none !important;
+}
+
+.ya-ctrl-disabled.ya-ctrl-disabled,
+.ya-switch-opt.ya-ctrl-disabled,
+.ya-switch-card.ya-ctrl-disabled,
+[aria-disabled="true"].ya-ctrl-disabled {
+  opacity: 0.48 !important;
+  filter: grayscale(0.85) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+.ya-ctrl-disabled.ya-ctrl-disabled:hover,
+.ya-ctrl-disabled.ya-ctrl-disabled:active {
+  opacity: 0.48 !important;
+  transform: none !important;
+}
+
+#heatUnitSwitchContainer[aria-disabled="true"] {
+  cursor: not-allowed !important;
+}
+#heatUnitSwitchContainer[aria-disabled="true"]:active {
+  transform: none !important;
+}
+
+/* =============================================================================
+   РУЧНОЙ ВВОД И РЕДАКТОР СМЕН (v14.5.0)
+   ============================================================================= */
+.manual-table-input {
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+body.light-mode .manual-table-input {
+  background-color: #FFFFFF !important;
+  color: var(--text-main) !important;
+}
+
+body:not(.light-mode) .manual-table-input {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+}
+
+.manual-table-input:focus {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+}
+
+body:not(.light-mode) .manual-table-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.75;
+  cursor: pointer;
+}
+
+/* =============================================================================
+   СИНХРОНИЗАЦИЯ И ХРАНЕНИЕ ДАННЫХ (v14.5.0)
+   ============================================================================= */
+.sync-option-card {
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+}
+
+.sync-option-card:hover {
+  transform: translateY(-1px);
+}
+
+.sync-option-card input[type="radio"] {
+  accent-color: #10B981;
+  width: 16px;
+  height: 16px;
+}
+
+#saveDropdownMenu {
+  min-width: 240px;
+}
+
+body.light-mode .sync-option-card:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+body:not(.light-mode) .sync-option-card:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+
+
+
+.manual-table-input.manual-input-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4) !important;
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+#manualEditorTableContainer {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+  padding: 0 !important;
+}
+
+#manualEditorTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+}
+
+#manualEditorTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  background-color: var(--bg-elevated) !important;
+}
+
+#manualEditorTable th.cursor-pointer {
+  cursor: pointer;
+  user-select: none;
+}
+
+#manualEditorTable th.cursor-pointer:hover {
+  color: var(--text-main, #FFFFFF);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+#manualEditorTable input,
+#manualEditorTable select,
+#manualEditorTable button {
+  touch-action: pan-x pan-y;
+}
+
+.manual-select-cell {
+  cursor: pointer;
+  touch-action: pan-x pan-y;
+}
+
+.manual-select-cell select {
+  pointer-events: none;
+}

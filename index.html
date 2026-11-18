@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Независимый исследовательский UI/UX-концепт аналитики дохода для курьеров доставки (версия 14.5.0)" />
+  <meta name="theme-color" content="#F4F5F7" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop offset=%270%25%27 stop-color=%27%23C750B0%27/%3E%3Cstop offset=%27100%25%27 stop-color=%27%23885EDA%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2715.5%27 fill=%27url(%23g)%27/%3E%3Ctext x=%2716%27 y=%2721.5%27 font-family=%27-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,sans-serif%27 font-size=%2714.5%27 font-weight=%27900%27 text-anchor=%27middle%27 fill=%27%23FFFFFF%27 letter-spacing=%27-0.5%27%3E%D0%9A%D0%90%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Курьерская аналитика" />
+  <link rel="apple-touch-icon" href="favicon.ico" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Концепт аналитики дохода курьера (v14.12.4) — Неофициальный UX-прототип</title>
+
+  <!-- Open Graph / VK / Telegram / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://courier-analytics.ru/" />
+  <meta property="og:title" content="Курьерская аналитика дохода (v14.12.4)" />
+  <meta property="og:description" content="Интерактивный UI/UX-концепт детальной аналитики дохода, смен, чаевых и накладных расходов курьера доставки." />
+  <meta property="og:image" content="https://courier-analytics.ru/assets/cover_courier_analytics_dark_card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Курьерская аналитика дохода (v14.12.4)" />
+  <meta name="twitter:description" content="Интерактивный UI/UX-концепт детальной аналитики дохода, смен, чаевых и накладных расходов курьера доставки." />
+  <meta name="twitter:image" content="https://courier-analytics.ru/assets/cover_courier_analytics_dark_card.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: 'class' };   // dark: следует за переключателем приложения, а не за ОС</script>
+  <!-- Dexie.js для надёжного клиентского IndexedDB хранилища -->
+  <script src="assets/dexie.min.js"></script>
+  <script>if (typeof Dexie === 'undefined') { const s = document.createElement('script'); s.src = 'https://unpkg.com/dexie/dist/dexie.js'; s.async = false; document.head.appendChild(s); }</script>
+  <!-- SheetJS (.xlsx/.xls) и fflate (gzip-фолбэк) загружаются лениво по требованию -->
+
+  <!-- Leaflet для интерактивной карты районов (Subresource Integrity via modern-web-guidance) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=14.10.0" />
+  <link rel="stylesheet" href="theme/theme.css?v=14.10.0" />
+</head>
+<body class="light-mode min-h-[100svh] flex flex-col items-center py-3 px-2 sm:px-4">
+
+  <!-- ОБЕРТКА СТРАНИЦЫ: ПЛАШКА СТЕНДА СЛЕВА, ПРИЛОЖЕНИЕ СПРАВА/ПО ЦЕНТРУ -->
+  <div id="appRootWrapper" class="app-root-wrapper w-full transition-colors duration-200">
+
+    <!-- ЛЕВАЯ БОКОВАЯ ПАНЕЛЬ СТЕНДА (СЛЕВА ОТ ПРИЛОЖЕНИЯ) -->
+    <aside id="leftSidebar" class="left-sidebar shrink-0 flex flex-col gap-2 select-none">
+      <!-- БОКОВАЯ СЕРВИСНАЯ ПЛАШКА СТЕНДА -->
+      <div id="topBannerContainer" class="px-3.5 py-2.5 rounded-2xl ya-card text-xs flex flex-col transition-colors duration-200 w-full shrink-0 select-none">
+    <!-- Скрытый инпут для выбора файла через системное окно проводника Windows -->
+    <input type="file" id="userDataFileInput" accept=".xlsx,.xls,.csv,.tsv,.txt" class="hidden" onchange="handleUserDataFileUpload(event)" />
+
+    <!-- 1. ВЕРСИЯ И ЗАГОЛОВОК С КНОПКОЙ СВОРАЧИВАНИЯ НА МОБИЛЬНОМ -->
+    <div class="flex items-center justify-between gap-2 w-full">
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <span class="version-badge px-2 py-0.5 rounded-md font-extrabold text-[11px] leading-tight shadow-sm shrink-0">v14.12.4</span>
+        <span class="font-semibold text-main text-xs leading-snug break-words">UI/UX-концепт аналитики курьера</span>
+      </div>
+      <!-- КНОПКА СВОРАЧИВАНИЯ (МОБИЛЬНАЯ, ПРИВЯЗКА К ПРАВОМУ КРАЮ ПЛАШКИ) -->
+      <button type="button" onclick="toggleBannerCollapse()" id="btnBannerCollapseMobile" title="Свернуть сервисную плашку" aria-label="Свернуть / развернуть сервисную плашку" aria-expanded="true" class="w-6 h-6 -mr-1 rounded-lg ya-nav-btn flex items-center justify-center transition shrink-0 active:scale-95 text-sec hover:text-main">
+        <svg id="bannerCollapseChevron" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- СВОРАЧИВАЕМАЯ ЧАСТЬ СЕРВИСНОЙ ПЛАШКИ (ДЕФОЛТНО РАЗВЕРНУТО) -->
+    <div id="bannerCollapsibleBody" class="w-full flex flex-col">
+      <!-- 2. ОГОВОРКА О НЕЗАВИСИМОСТИ -->
+    <div class="text-[10px] leading-snug text-mut mt-1.5">
+      Независимый некоммерческий исследовательский UI/UX-прототип. Не является официальным продуктом сервисов доставки. Все данные вымышленные.
+    </div>
+
+    <!-- РАЗДЕЛИТЕЛЬ 1 (МЕЖДУ ОПИСАНИЕМ И БЛОКОМ УПРАВЛЕНИЯ) -->
+    <div class="sidebar-divider sidebar-divider-1"></div>
+
+    <!-- 4. БЛОК УПРАВЛЕНИЯ (АДАПТИВНЫЙ КЛАСТЕР: ПК И МОБИЛЬНЫЙ РЕЖИМЫ) -->
+    <div class="banner-controls-cluster">
+      
+      <!-- КОЛОНКА 1 (МОБ) / СЕКЦИЯ 1 (ПК): ТЕМА, СТИЛЬ И РЕЖИМ -->
+      <div class="banner-cluster-theme-layout relative z-20 flex items-center gap-1.5 shrink-0">
+        
+        <!-- МОБИЛЬНЫЙ СПЛИТ: ТЕМА И ПК/МОБ (ВЕРХНЯЯ СТРОКА НА МОБИЛЬНОМ) -->
+        <div class="relative flex items-center rounded-xl ya-nav-btn h-8 overflow-hidden shrink-0 w-full" id="themeLayoutSplitMobile">
+          <!-- ЛЕВАЯ ЧАСТЬ: ПЕРЕКЛЮЧЕНИЕ СВЕТЛОЙ / ТЕМНОЙ ТЕМЫ -->
+          <button type="button" onclick="toggleColorTheme()" id="btnColorThemeMobile" title="Переключить темную / светлую тему" aria-label="Переключить тему" class="flex-1 h-full px-0.5 flex items-center justify-center transition hover:bg-black/5 active:scale-95 text-main">
+            <span id="lblThemeIconMobile" class="flex items-center justify-center">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </span>
+          </button>
+          <span class="w-px h-3.5 bg-black/10 dark:bg-white/15 my-auto"></span>
+          <!-- ПРАВАЯ ЧАСТЬ: ПЕРЕКЛЮЧЕНИЕ РЕЖИМА ПК / МОБИЛЬНЫЙ -->
+          <button type="button" onclick="toggleLayoutMode()" id="btnLayoutModeMobile" title="Переключить режим ПК / мобильный" aria-label="Переключить режим ПК / мобильный" class="flex-1 h-full px-0.5 flex items-center justify-center transition hover:bg-black/5 active:scale-95 text-main">
+            <span id="lblLayoutIconMobile" class="flex items-center justify-center">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+            </span>
+          </button>
+        </div>
+
+        <!-- МОБИЛЬНАЯ КНОПКА СТИЛЯ (НИЖНЯЯ СТРОКА НА МОБИЛЬНОМ: ТОЛЬКО ИКОНКА И СТРЕЛКА) -->
+        <div class="relative w-full" id="styleMobileWrapper">
+          <button type="button" onclick="toggleStyleDropdown(event, 'mobile')" id="btnStyleMobile" title="Стиль оформления: Обычный" aria-label="Стиль оформления" aria-haspopup="true" class="w-full h-8 px-1.5 rounded-xl ya-nav-btn flex items-center justify-center gap-1 transition active:scale-95 text-main">
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+              <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+              <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+              <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+            </svg>
+            <svg id="styleChevronIconMobile" class="w-2.5 h-2.5 transition-transform duration-150" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+
+          <!-- ВЫПАДАЮЩЕЕ МЕНЮ СТИЛЕЙ (МОБИЛЬНОЕ) -->
+          <div id="styleDropdownMenuMobile" class="hidden absolute top-full left-0 mt-1.5 w-[165px] rounded-xl ya-card shadow-2xl border border-subtle p-1.5 z-50 text-xs select-none space-y-1 bg-[var(--bg-card)]">
+            <div class="px-2 py-1 text-[10px] font-semibold text-sec uppercase tracking-wider">Стиль оформления</div>
+            <button type="button" onclick="selectUiStyle('default'); closeStyleDropdown();" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center justify-between text-main font-semibold group">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span>Обычный</span>
+              </div>
+              <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. ДЕСКТОПНАЯ КНОПКА ТЕМЫ -->
+        <button type="button" onclick="toggleColorTheme()" id="btnColorTheme" title="Переключить темный / светлый режим" aria-label="Переключить тему" class="banner-theme-desktop w-8 h-8 rounded-xl ya-nav-btn flex items-center justify-center transition shrink-0 text-main">
+          <span id="lblThemeIcon" class="flex items-center justify-center">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </span>
+        </button>
+
+        <!-- 2. ДЕСКТОПНЫЙ ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМА ТЕЛЕФОН / ПК -->
+        <button type="button" onclick="toggleLayoutMode()" id="btnLayoutMode" title="Переключить режим ПК / мобильный" aria-label="Переключить режим ПК / мобильный" class="banner-layout-desktop w-8 h-8 rounded-xl ya-nav-btn flex items-center justify-center transition shrink-0 text-main">
+          <span id="lblLayoutIcon" class="flex items-center justify-center">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </span>
+          <span id="lblLayoutMode" class="sr-only">ПК</span>
+        </button>
+
+        <!-- 3. ДЕСКТОПНАЯ КНОПКА ВЫБОРА СТИЛЯ (СПРАВА ОТ ПК/МОБ) -->
+        <div class="relative z-30 items-center rounded-xl ya-nav-btn shrink-0 banner-style-desktop" id="styleSplitWrapper">
+          <button type="button" onclick="toggleStyleDropdown(event, 'desktop')" id="btnStyleSelect" title="Стиль оформления: Обычный" class="pl-2 pr-1.5 py-1.5 font-semibold transition flex items-center gap-1.5 text-main active:scale-95 rounded-l-xl">
+            <!-- ИКОНКА СТИЛЯ В СТАНДАРТНОМ ЦВЕТЕ ТЕКСТА (НЕ СИНЯЯ) -->
+            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+              <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+              <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+              <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+            </svg>
+            <span class="text-xs whitespace-nowrap" id="lblStyleBtnText">Стиль</span>
+          </button>
+          <span class="w-px h-3.5 bg-black/10 dark:bg-white/15 my-auto"></span>
+          <button type="button" onclick="toggleStyleDropdown(event, 'desktop')" id="btnStyleDropdown" title="Выбрать стиль оформления" aria-label="Список стилей оформления" aria-haspopup="true" class="px-1.5 py-1.5 font-semibold transition flex items-center justify-center text-main active:scale-95 rounded-r-xl">
+            <svg id="styleChevronIcon" class="w-3 h-3 transition-transform duration-150" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+
+          <!-- ВЫПАДАЮЩЕЕ МЕНЮ СТИЛЕЙ (ДЕСКТОП: С ВЫРАВНИВАНИЕМ ПО ПРАВОМУ КРАЮ КНОПКИ) -->
+          <div id="styleDropdownMenu" class="hidden absolute top-full right-0 mt-1.5 w-[165px] rounded-xl ya-card shadow-2xl border border-subtle p-1.5 z-50 text-xs select-none space-y-1 bg-[var(--bg-card)]">
+            <div class="px-2 py-1 text-[10px] font-semibold text-sec uppercase tracking-wider">Стиль оформления</div>
+            <button type="button" onclick="selectUiStyle('default'); closeStyleDropdown();" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center justify-between text-main font-semibold group">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span>Обычный</span>
+              </div>
+              <svg id="styleCheck-default" class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- РАЗДЕЛИТЕЛЬ 1 (НА ПК ГОРИЗОНТАЛЬНЫЙ, НА МОБИЛЬНОМ ВЕРТИКАЛЬНЫЙ) -->
+      <div class="sidebar-divider banner-cluster-divider-1"></div>
+
+      <!-- КОЛОНКА 2 (МОБ) / СЕКЦИЯ 2 (ПК): ИСТОЧНИК И ИМПОРТ -->
+      <div class="banner-cluster-source-import flex flex-col items-start gap-1.5 w-full min-w-0">
+        <!-- ПОДПИСЬ ИСТОЧНИКА ДАННЫХ -->
+        <div class="text-[11px] leading-tight min-w-0 max-w-full w-full">
+          <span id="dataStatusBadge" class="font-bold text-sec">Источник: <b class="text-amber-500">Демо-данные</b></span>
+        </div>
+
+        <!-- КНОПКИ ИМПОРТА -->
+        <div class="flex items-center gap-1.5 relative z-20" id="importRowContainer">
+          <!-- SPLIT-КНОПКА ИМПОРТА ДАННЫХ -->
+          <div class="relative z-20 flex items-center rounded-xl ya-nav-btn shrink-0" id="importSplitWrapper">
+            <button type="button" onclick="openImportModal()" id="btnImportData" title="Загрузить свои данные (Excel / CSV)" class="pl-2.5 pr-1.5 py-1.5 font-semibold transition flex items-center gap-1.5 text-main active:scale-95 rounded-l-xl">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 10l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span class="text-xs whitespace-nowrap" id="lblImportBtnText">Импорт</span>
+            </button>
+            <span class="w-px h-3.5 bg-black/10 dark:bg-white/15 my-auto"></span>
+            <button type="button" onclick="toggleImportDropdown(event)" id="btnImportDropdown" title="Дополнительные опции: быстрый импорт или скачать шаблон" aria-label="Опции импорта" aria-haspopup="true" class="px-1.5 py-1.5 font-semibold transition flex items-center justify-center text-main active:scale-95 rounded-r-xl">
+              <svg id="importChevronIcon" class="w-3 h-3 transition-transform duration-150" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <!-- ВЫПАДАЮЩЕЕ МЕНЮ БЫСТРЫХ ДЕЙСТВИЙ -->
+            <div id="importDropdownMenu" class="hidden absolute top-full left-0 mt-1.5 w-[215px] rounded-xl ya-card shadow-2xl border border-subtle p-1.5 z-50 text-xs select-none space-y-1">
+              <!-- 1. Основной импорт -->
+              <button type="button" onclick="triggerUserDataFileInput(); closeImportDropdown();" class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center gap-2 text-main">
+                <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 10l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <div>
+                  <div class="font-semibold">Выбрать файл...</div>
+                  <div class="text-[10px] text-sec">Быстрый импорт без диалога</div>
+                </div>
+              </button>
+
+              <!-- 2. Ручной импорт -->
+              <button type="button" onclick="openManualEditorModal(); closeImportDropdown();" class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center gap-2 text-main">
+                <svg class="w-4 h-4 text-violet-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <div>
+                  <div class="font-semibold">Ручной ввод данных...</div>
+                  <div class="text-[10px] text-sec">Внесение смен в таблице без файла</div>
+                </div>
+              </button>
+
+              <!-- 3. Скачивание шаблона -->
+              <button type="button" onclick="downloadSampleImportFile(); closeImportDropdown();" class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center gap-2 text-main">
+                <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <div>
+                  <div class="font-semibold">Файл-шаблон (.xlsx)</div>
+                  <div class="text-[10px] text-sec">Скачать шаблон для импорта</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- КНОПКА СБРОСА НА ДЕМО (С ОКНОМ ПОДТВЕРЖДЕНИЯ) -->
+          <button type="button" onclick="openResetConfirmModal()" id="btnResetData" title="Сбросить на демо-данные" class="hidden px-2 py-1.5 rounded-xl ya-nav-btn font-semibold transition text-rose-400 hover:text-rose-300 active:scale-95 text-xs shrink-0">
+            ✕ Демо
+          </button>
+        </div>
+
+        <!-- КНОПКА СИНХРОНИЗАЦИИ ДАННЫХ (ПОД КНОПКОЙ ИМПОРТА) -->
+        <div class="relative z-10 flex items-center rounded-xl ya-nav-btn shrink-0" id="saveSplitWrapper">
+          <button type="button" onclick="openSyncModal()" id="btnSaveData" title="Синхронизация данных: IndexedDB (по умолчанию)" class="pl-2.5 pr-1.5 py-1.5 font-semibold transition flex items-center gap-1.5 text-main active:scale-95 rounded-l-xl">
+            <!-- ИКОНКА СИНХРОНИЗАЦИИ (ИДЕАЛЬНО КРУГЛЫЕ СИММЕТРИЧНЫЕ СТРЕЛКИ) -->
+            <svg class="w-3.5 h-3.5 shrink-0 text-emerald-500" id="syncStatusIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 12a8 8 0 0 1 14.93-4M20 4v4h-4"></path>
+              <path d="M20 12a8 8 0 0 1-14.93 4M4 20v-4h4"></path>
+            </svg>
+            <span class="text-xs whitespace-nowrap" id="lblSaveBtnText">Синхронизация</span>
+          </button>
+          <span class="w-px h-3.5 bg-black/10 dark:bg-white/15 my-auto"></span>
+          <button type="button" onclick="toggleSaveDropdown(event)" id="btnSaveDropdown" title="Выбрать режим синхронизации" aria-label="Варианты синхронизации данных" aria-haspopup="true" class="px-1.5 py-1.5 font-semibold transition flex items-center justify-center text-main active:scale-95 rounded-r-xl">
+            <svg id="saveChevronIcon" class="w-3 h-3 transition-transform duration-150" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+
+          <!-- ВЫПАДАЮЩЕЕ МЕНЮ ВАРИАНТОВ СОХРАНЕНИЯ / СИНХРОНИЗАЦИИ (СТРОГИЙ ПОРЯДОК 4 ЭЛЕМЕНТОВ) -->
+          <div id="saveDropdownMenu" class="hidden absolute top-full left-0 mt-1.5 w-[250px] rounded-xl ya-card shadow-2xl border border-subtle p-1.5 z-50 text-xs select-none space-y-1 bg-[var(--bg-card)]">
+            <div class="px-2 py-1 text-[10px] font-semibold text-sec uppercase tracking-wider">Синхронизация данных</div>
+
+            <!-- 1. Без синхронизации (только сессия) -->
+            <button type="button" onclick="selectSyncMode('session'); closeSaveDropdown();" class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center justify-between text-main group">
+              <div>
+                <div class="font-semibold text-main">Без синхронизации</div>
+                <div class="text-[10px] text-sec">Только сессия (RAM)</div>
+              </div>
+              <svg id="syncCheck-session" class="w-3.5 h-3.5 text-blue-500 shrink-0 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </button>
+
+            <!-- 2. IndexedDB (локально в браузере) - DEFAULT -->
+            <button type="button" onclick="selectSyncMode('indexeddb'); closeSaveDropdown();" class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center justify-between text-main group">
+              <div>
+                <div class="font-semibold text-main">IndexedDB (локально)</div>
+                <div class="text-[10px] text-sec">По умолчанию в браузере</div>
+              </div>
+              <svg id="syncCheck-indexeddb" class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </button>
+
+            <!-- 3. Яндекс Диск (облако между устройствами) -->
+            <button type="button" onclick="selectSyncMode('yandex'); closeSaveDropdown();" class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center justify-between text-main group">
+              <div>
+                <div class="font-semibold text-main">Яндекс Диск</div>
+                <div class="text-[10px] text-sec">Облако между устройствами</div>
+              </div>
+              <svg id="syncCheck-yandex" class="w-3.5 h-3.5 text-blue-500 shrink-0 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </button>
+
+            <div class="border-t border-subtle my-1"></div>
+
+            <!-- 4. Скачать смены (.xlsx и .csv) -->
+            <div id="btnDropdownDownloadBackup" class="space-y-0.5">
+              <button type="button" id="btnDropdownDownloadBackupXlsx" onclick="downloadBackupXlsx(); closeSaveDropdown();" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center gap-2 text-main btn-plan-disabled" disabled title="Доступно только для ваших внесённых смен">
+                <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <div class="min-w-0 flex-1">
+                  <div class="font-semibold text-xs truncate">Скачать смены (.xlsx)</div>
+                  <div class="text-[10px] text-sec truncate">Таблица для аналитики</div>
+                </div>
+              </button>
+              <button type="button" id="btnDropdownDownloadBackupCsv" onclick="downloadBackupCsv(); closeSaveDropdown();" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition flex items-center gap-2 text-main btn-plan-disabled" disabled title="Доступно только для ваших внесённых смен">
+                <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <div class="min-w-0 flex-1">
+                  <div class="font-semibold text-xs truncate">Скачать смены (.csv)</div>
+                  <div class="text-[10px] text-sec truncate">Текстовый поток (UTF-8 BOM)</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- РАЗДЕЛИТЕЛЬ 2 (ВЕРТИКАЛЬНЫЙ НА МОБИЛЬНОМ, СКРЫТ НА ПК) -->
+      <div class="banner-cluster-divider-2 hidden"></div>
+
+      <!-- КОЛОНКА 3: КНОПКА ЧАЕВЫХ (НА МОБИЛЬНОМ ВНУТРИ ПЛАШКИ, НА ПК СКРЫТА) -->
+      <div class="banner-cluster-tip hidden">
+        <button type="button" onclick="openAuthorTipModal()" id="btnAuthorTipMobile" title="Поддержать автора чаевыми & интерактивная чайная станция" class="h-full w-full px-2 py-1.5 rounded-xl ya-card border border-subtle hover:border-amber-400/60 shadow-sm transition-all duration-150 flex items-center justify-center gap-1.5 text-left active:scale-95 group cursor-pointer">
+          <span class="w-6 h-6 rounded-lg bg-amber-400/15 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform duration-200">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+              <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+              <line x1="6" y1="1" x2="6" y2="4"></line>
+              <line x1="10" y1="1" x2="10" y2="4"></line>
+              <line x1="14" y1="1" x2="14" y2="4"></line>
+            </svg>
+          </span>
+          <span class="leading-tight min-w-0">
+            <span class="block text-[11.5px] sm:text-[12px] font-bold text-main group-hover:text-amber-500 transition-colors whitespace-normal leading-tight">Оставить чаевые</span>
+            <span class="block text-[10px] leading-tight font-normal text-sec">& интерактивная чайная станция</span>
+          </span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- РАЗДЕЛИТЕЛЬ 3 (МЕЖДУ БЛОКОМ УПРАВЛЕНИЯ И ЮРИДИЧЕСКИМИ ДОКУМЕНТАМИ) -->
+    <div class="sidebar-divider sidebar-divider-bottom"></div>
+
+    <!-- 5. ЮРИДИЧЕСКИЕ ДОКУМЕНТЫ -->
+    <div class="sidebar-legal flex items-center justify-center gap-2 text-[10px] leading-snug text-mut">
+      <button type="button" onclick="openLegalModal('terms')" class="hover:underline hover:text-sec transition">Оферта</button>
+      <span class="opacity-40">•</span>
+      <button type="button" onclick="openLegalModal('privacy')" class="hover:underline hover:text-sec transition">Конфиденциальность</button>
+    </div>
+    </div> <!-- /bannerCollapsibleBody -->
+  </div>
+
+      <!-- КНОПКА: ОСТАВИТЬ ЧАЕВЫЕ (НА ПК ПОД ЛЕВОЙ ПЛАШКОЙ) -->
+      <button type="button" onclick="openAuthorTipModal()" id="btnAuthorTipDesktop" title="Поддержать автора чаевыми & интерактивная чайная станция" class="w-full px-2.5 py-2.5 rounded-2xl ya-card border border-subtle hover:border-amber-400/60 shadow-sm transition-all duration-150 flex items-center gap-2 text-xs font-bold text-main active:scale-98 group cursor-pointer">
+        <span class="w-7 h-7 rounded-xl bg-amber-400/15 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform duration-200">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+            <line x1="6" y1="1" x2="6" y2="4"></line>
+            <line x1="10" y1="1" x2="10" y2="4"></line>
+            <line x1="14" y1="1" x2="14" y2="4"></line>
+          </svg>
+        </span>
+        <span class="text-left leading-tight min-w-0">
+          <span class="block text-xs font-bold text-main group-hover:text-amber-500 transition-colors whitespace-nowrap">Оставить чаевые</span>
+          <span class="block text-[10px] leading-tight font-normal text-sec">& интерактивная чайная станция</span>
+        </span>
+      </button>
+    </aside>
+
+  <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
+  <div id="layoutContainer" class="w-full transition-colors duration-200">
+    <div id="columnsGrid" class="grid grid-cols-1 gap-4 items-start">
+
+      <!-- ========================================================================= -->
+      <!-- ЭКРАН 1: ГЛАВНЫЙ ЭКРАН АНАЛИТИКИ                                          -->
+      <!-- ========================================================================= -->
+      <div id="screenMain" class="app-shell rounded-[32px] p-3.5 sm:p-4 space-y-3 screen-blocks-collapsed">
+
+        <!-- 1. Шапка: Назад | Аналитика дохода -->
+        <header class="flex items-center justify-between gap-2 pt-0.5">
+          <button type="button" onclick="showToast('Возврат в раздел «Доход»')" class="ya-nav-btn h-10 px-3.5 flex items-center gap-1.5 text-xs font-semibold active:scale-95 shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            <span>Назад</span>
+          </button>
+          <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-center flex-1 truncate">
+            Аналитика дохода
+          </h1>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <!-- КНОПКА СКАЧИВАНИЯ КАРТОЧКИ ДОХОДА (ВАРИАНТ 1: РЯДОМ С НАСТРОЙКАМИ, ИКОНКА СО СТРЕЛКОЙ ВВЕРХ) -->
+            <button type="button" id="btnHeaderExportCard" onclick="openExportCardModal()" title="Скачать карточку дохода (PNG / Текст)" aria-label="Скачать карточку дохода" class="ya-nav-btn w-10 h-10 flex items-center justify-center text-sec hover:text-main active:scale-95 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
+                <path d="M8 8l4-4 4 4"></path>
+                <path d="M12 4v12"></path>
+              </svg>
+            </button>
+            <button type="button" id="btnHeaderSettings" onclick="openSettingsScreen()" title="Настройки расходов и аналитики" aria-label="Настройки" class="ya-nav-btn w-10 h-10 flex items-center justify-center text-sec hover:text-main active:scale-95 transition">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="6" y1="4" x2="6" y2="20"></line>
+                <line x1="3" y1="15" x2="9" y2="15"></line>
+                <line x1="12" y1="4" x2="12" y2="20"></line>
+                <line x1="9" y1="8" x2="15" y2="8"></line>
+                <line x1="18" y1="4" x2="18" y2="20"></line>
+                <line x1="15" y1="16" x2="21" y2="16"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- 2. Второстепенная строка: Прибыль в час за все время -->
+        <div class="px-1.5 text-[11px] leading-tight text-mut">
+          Прибыль в час за все время<span id="goalsStatusLabel"> (без учета целей)</span>:
+          <span id="allTimeHourlyProfit" class="font-medium">694 ₽/ч</span>
+        </div>
+
+        <!-- 3-4. КНОПКИ УПРАВЛЕНИЯ ПЕРВЫМ БЛОКОМ (ГРАФИК/ТАБЛИЦА И ПЕРИОД) — ВАРИАНТ 2 (ZERO-HEIGHT CLUSTER) -->
+        <div id="block1ControlsWrapper">
+          <!-- Единая строка контролов: Показатель, Режим, Период (Дни/Нед/Мес), Вид (График/Таблица) -->
+          <div id="block1SwitchCards" class="grid grid-cols-3 gap-1.5">
+            <!-- 1. Показатель: Сумма / В час -->
+            <div id="switchSumHourly" role="switch" aria-checked="false" aria-label="Показатель: Сумма или В час" tabindex="0" onclick="toggleSumHourly()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSumHourly();}" class="ya-switch-card">
+              <span class="ya-switch-cat">ПОКАЗАТЕЛЬ</span>
+              <span id="lblSum" class="ya-switch-val ya-switch-opt-active">Сумма</span>
+              <span id="lblHourly" class="ya-switch-val">В час</span>
+            </div>
+
+            <!-- 2. Режим: Начислено / Чистыми -->
+            <div id="switchGrossNet" role="switch" aria-checked="true" aria-label="Режим: Начислено или Чистыми" tabindex="0" onclick="toggleGrossNet()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleGrossNet();}" class="ya-switch-card">
+              <span class="ya-switch-cat">РЕЖИМ</span>
+              <span id="lblGross" class="ya-switch-val">Начислено</span>
+              <span id="lblNet" class="ya-switch-val ya-switch-opt-active">Чистыми</span>
+            </div>
+
+            <!-- 3. Период: Дни / Нед / Мес (Встроенный однострочный микро-кластер) -->
+            <div id="block1PeriodButtons" class="ya-segmented">
+              <button type="button" onclick="setPeriod('days')" id="btnPeriod-days" class="ya-seg-btn ya-seg-btn-active">Дни</button>
+              <button type="button" onclick="setPeriod('weeks')" id="btnPeriod-weeks" class="ya-seg-btn">Нед</button>
+              <button type="button" onclick="setPeriod('months')" id="btnPeriod-months" class="ya-seg-btn">Мес</button>
+            </div>
+
+            <!-- 4. Диаграмма / Таблица (Сегментированный pill-переключатель) -->
+            <div id="switchChartTable" role="switch" aria-checked="false" aria-label="Переключение: Диаграмма или Таблица" tabindex="0" onclick="toggleChartTable()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleChartTable();}" class="ya-switch-card ya-switch-pill-container cursor-pointer" title="Переключить вид: Диаграмма / Таблица">
+              <span id="lblChart" class="ya-pill-segment ya-switch-opt-active pointer-events-none" aria-label="Диаграмма">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+              </span>
+              <span id="lblTable" class="ya-pill-segment pointer-events-none" aria-label="Таблица">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <path d="M3 9h18"></path>
+                  <path d="M3 15h18"></path>
+                  <path d="M12 3v18"></path>
+                </svg>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ОСНОВНАЯ СЕТКА БЛОКОВ (1-КОЛОНОЧНАЯ ДЛЯ ТЕЛЕФОНА / 2-КОЛОНОЧНАЯ ДЛЯ ПК) -->
+        <div class="desktop-grid-split">
+
+          <!-- ЗОНА 1: БЛОК 1 (ДИНАМИКА ДОХОДА) -->
+          <div id="areaBlock1" class="area-block1 space-y-2.5">
+            <!-- 5. БЛОК 1: ДИНАМИКА ДОХОДА -->
+            <section class="ya-card p-3.5 space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <h2 id="block1Title" class="text-xs font-bold tracking-tight">Динамика дохода</h2>
+                <button type="button" id="btnToggleBenchmarks" onclick="toggleBenchmarks()" title="Ориентиры: Вы, Район, Город" class="ya-benchmarks-btn px-2.5 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 transition active:scale-95 border">
+                  <span id="benchmarksDot" class="w-2 h-2 rounded-full benchmarks-dot-on shrink-0 transition-all"></span>
+                  <span id="benchmarksLabel">Ориентиры</span>
+                </button>
+              </div>
+
+              <div id="chartViewContainer" class="space-y-2.5">
+                <div class="relative h-56 pt-2 pb-1 pl-9 pr-1 select-none" id="barChartCanvas"></div>
+                <div id="chartLegendContainer" class="grid grid-cols-3 gap-x-2 sm:gap-x-3 gap-y-1 text-[10px] pt-1.5 border-t border-subtle text-sec">
+                  <div id="legendOrdersItem" class="flex items-center gap-1 min-w-0">
+                    <i class="w-2 h-2 rounded-full seg-orders inline-block shrink-0"></i>
+                    <span class="truncate">Заказы</span>
+                    <b id="legValOrders" class="text-main font-semibold tabular-nums shrink-0"></b>
+                  </div>
+                  <div id="legendSurgeItem" class="flex items-center gap-1 min-w-0">
+                    <i class="w-2 h-2 rounded-full seg-surge inline-block shrink-0"></i>
+                    <span class="truncate">Спрос</span>
+                    <b id="legValSurge" class="text-main font-semibold tabular-nums shrink-0"></b>
+                  </div>
+                  <div id="legendRatingItem" class="flex items-center gap-1 min-w-0">
+                    <i class="w-2 h-2 rounded-full seg-rating inline-block shrink-0"></i>
+                    <span class="truncate">Рейтинг</span>
+                    <b id="legValRating" class="text-main font-semibold tabular-nums shrink-0"></b>
+                  </div>
+                  <div id="legendBonusesItem" class="flex items-center gap-1 min-w-0">
+                    <i class="w-2 h-2 rounded-full seg-bonus inline-block shrink-0"></i>
+                    <span class="truncate">Бонусы</span>
+                    <b id="legValBonuses" class="text-main font-semibold tabular-nums shrink-0"></b>
+                  </div>
+                  <div id="legendGoalsItem" class="hidden flex items-center gap-1 min-w-0">
+                    <i class="w-2 h-2 rounded-full seg-goals inline-block shrink-0"></i>
+                    <span class="truncate">Цели</span>
+                    <b id="legValGoals" class="text-main font-semibold tabular-nums shrink-0"></b>
+                  </div>
+                  <div id="legendTipsItem" class="flex items-center gap-1 min-w-0">
+                    <i class="w-2 h-2 rounded-full seg-tips inline-block shrink-0"></i>
+                    <span class="truncate">Чаевые</span>
+                    <b id="legValTips" class="text-main font-semibold tabular-nums shrink-0"></b>
+                  </div>
+                  <div id="legendGrossBg" class="col-start-3 flex items-center gap-1 text-[9.5px] opacity-75 min-w-0">
+                    <i class="w-2.5 h-2.5 rounded-sm chart-gross-striped inline-block shrink-0"></i>
+                    <span class="truncate">Начислено</span>
+                  </div>
+                </div>
+                <div id="selectedBarDetails" class="ya-subcard p-2.5 text-[11px]"></div>
+              </div>
+
+              <div id="tableViewContainer" class="hidden space-y-2 relative">
+                <!-- ПАНЕЛЬ УПРАВЛЕНИЯ ТАБЛИЦЕЙ (v14.12.1) -->
+                <div class="flex items-center justify-between text-xs text-sec gap-2 flex-wrap">
+                  <div class="flex items-center gap-2">
+                    <span id="tableFilteredRowsCount" class="text-[11px] text-sec"></span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs">
+                    <button type="button" onclick="openSettingsScreen()" class="font-semibold underline text-main hover:text-sec transition">Настроить поля</button>
+                  </div>
+                </div>
+
+                <!-- БАННЕР АКТИВНЫХ ФИЛЬТРОВ С ЧИПАМИ (v14.12.1) -->
+                <div id="tableFilterActiveBanner" class="hidden flex items-center gap-2 flex-wrap p-1.5 rounded-xl bg-elevated/60 border border-subtle text-[11px]">
+                  <button type="button" id="btnResetAllTableFilters" onclick="resetAllTableFilters()" class="text-xs text-rose-500 hover:text-rose-400 font-semibold px-1.5 py-0.5 rounded hover:bg-rose-500/10 transition active:scale-95">Сбросить все</button>
+                  <span class="text-sec/40 text-[10px]">|</span>
+                  <span class="text-sec font-medium text-[10px]">Применено:</span>
+                  <div id="tableFilterChipsList" class="flex items-center gap-1.5 flex-wrap"></div>
+                </div>
+
+                <!-- КОНТЕЙНЕР ТАБЛИЦЫ С ГОРИЗОНТАЛЬНЫМ И ВЕРТИКАЛЬНЫМ СКРОЛЛОМ -->
+                <div class="table-scroll-container custom-scroll rounded-xl border border-strong">
+                  <table class="w-full text-left border-collapse text-[11px] whitespace-nowrap">
+                    <thead id="detailedTableHead" class="table-sticky-header border-b bg-elevated text-sec"></thead>
+                    <tbody id="detailedTableBody" class="divide-y divide-[var(--border-subtle)]"></tbody>
+                    <tfoot id="detailedTableFoot" class="table-sticky-footer font-bold border-t bg-elevated"></tfoot>
+                  </table>
+                </div>
+
+                <!-- ВЫПАДАЮЩЕЕ ОКНО ФИЛЬТРА КОЛОНКИ ТАБЛИЦЫ (EXCEL-STYLE, v14.12.0) -->
+                <div id="tableFilterPopover" class="hidden fixed z-50 w-72 max-w-[92vw] rounded-2xl shadow-2xl border border-subtle bg-shell p-3 select-none flex flex-col gap-2.5 backdrop-blur-md" aria-modal="false" aria-label="Фильтр столбца таблицы">
+                  <!-- Шапка -->
+                  <div class="flex items-center justify-between pb-2 border-b border-subtle">
+                    <div class="min-w-0 flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                      <span id="tableFilterColTitle" class="font-extrabold text-xs truncate text-main">Фильтр</span>
+                      <span id="tableFilterColTypeBadge" class="px-1.5 py-0.2 rounded text-[9.5px] bg-black/5 dark:bg-white/10 text-sec font-semibold border border-subtle"></span>
+                    </div>
+                    <button type="button" onclick="closeTableFilterPopover()" aria-label="Закрыть" class="ya-nav-btn w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0">✕</button>
+                  </div>
+
+                  <!-- Блок числового диапазона (показывается для числовых колонок) -->
+                  <div id="tableFilterNumericRangeContainer" class="hidden space-y-1.5 p-2 rounded-xl bg-card border border-subtle">
+                    <div class="flex items-center justify-between text-[10px] font-semibold text-sec">
+                      <span>Диапазон значений</span>
+                      <button type="button" onclick="clearTableFilterRangeInputs()" class="text-rose-500 hover:underline">Очистить</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <div>
+                        <label for="tableFilterMinInput" class="block text-[9px] text-mut mb-0.5">От (мин):</label>
+                        <input type="number" id="tableFilterMinInput" step="any" class="w-full text-xs px-2 py-1 rounded-lg border border-subtle bg-shell text-main focus:outline-none focus:border-primary" placeholder="0">
+                      </div>
+                      <div>
+                        <label for="tableFilterMaxInput" class="block text-[9px] text-mut mb-0.5">До (макс):</label>
+                        <input type="number" id="tableFilterMaxInput" step="any" class="w-full text-xs px-2 py-1 rounded-lg border border-subtle bg-shell text-main focus:outline-none focus:border-primary" placeholder="100000">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Поиск по списку значений -->
+                  <div class="relative">
+                    <input type="text" id="tableFilterSearchInput" oninput="handleTableFilterSearch(this.value)" placeholder="Поиск значений..." class="w-full text-xs pl-7 pr-2 py-1.5 rounded-lg border border-subtle bg-card text-main focus:outline-none focus:border-primary">
+                    <svg class="w-3.5 h-3.5 text-mut absolute left-2 top-2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  </div>
+
+                  <!-- Быстрые кнопки "Выбрать все" / "Снять все" -->
+                  <div class="flex items-center justify-between text-[11px] px-0.5">
+                    <button type="button" onclick="setAllTableFilterCheckboxes(true)" class="text-xs font-semibold text-primary hover:underline">Выбрать все</button>
+                    <button type="button" onclick="setAllTableFilterCheckboxes(false)" class="text-xs font-semibold text-sec hover:underline">Снять все</button>
+                  </div>
+
+                  <!-- Список уникальных значений с чекбоксами -->
+                  <div id="tableFilterValuesList" class="max-h-44 overflow-y-auto custom-scroll space-y-0.5 p-1 rounded-xl bg-card border border-subtle text-xs">
+                    <!-- Checkboxes rendered dynamically -->
+                  </div>
+
+                  <!-- Кнопки действий -->
+                  <div class="flex items-center justify-between pt-2 border-t border-subtle gap-2">
+                    <button type="button" onclick="resetCurrentColumnFilter()" class="px-2.5 py-1 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded-lg transition">Сбросить</button>
+                    <button type="button" onclick="applyCurrentColumnFilter()" class="btn-primary px-3 py-1 text-xs font-bold rounded-lg shadow-sm active:scale-95 transition">Применить</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- КНОПКА-СПОЙЛЕР: ЕЩЕ / СВЕРНУТЬ (БЛОКИ 2 И 3) -->
+          <div id="blocksSpoilerWrapper" class="area-spoiler flex items-center justify-center w-full py-0.5 my-0">
+            <button type="button" id="btnToggleBlocks2and3" onclick="toggleBlocks2and3()"
+              title="Показать таблицу спроса и таблицу сравнения"
+              aria-expanded="false"
+              aria-controls="areaBlock2 areaBlock3"
+              class="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-sec hover:text-main transition-colors duration-150 cursor-pointer select-none py-0.5 px-2">
+              <span id="lblSpoilerText">Еще</span>
+              <svg id="spoilerChevronIcon" class="w-3 h-3 transition-transform duration-200 text-sec" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- ЗОНА 2: ПАНЕЛЬ СПРОСА + БЛОК 2 (МАТРИЦА СПРОСА И ПЛАНИРОВАНИЕ) -->
+          <div id="areaBlock2" class="area-block2 space-y-2 hidden">
+            <!-- 6. ПАНЕЛЬ УПРАВЛЕНИЯ СПРОСОМ -->
+            <div id="demandControlsRow" class="grid grid-cols-12 gap-1.5">
+              <button type="button" onclick="toggleWeather()" id="btnWeather" class="col-span-3 ya-card py-2 px-1.5 flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition active:scale-95">
+                <span class="text-sm leading-none">🌧️</span>
+                <span class="leading-tight">Осадки</span>
+              </button>
+              <div id="heatUnitSwitchContainer" role="switch" aria-checked="false" aria-label="Переключение единиц матрицы спроса: процент или рубли в час" tabindex="0" onclick="toggleHeatUnit()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleHeatUnit();}" class="col-span-3 ya-switch-card">
+                <span id="lblUnitPct" class="ya-switch-opt ya-switch-opt-active">% спроса</span>
+                <span id="lblUnitRub" class="ya-switch-opt">₽ в час</span>
+              </div>
+              <button id="btnDistrictSeasonContainer" type="button" onclick="openDistrictSeasonModal()" class="col-span-6 ya-card py-2 px-3 text-left flex items-center justify-between hover:opacity-95 active:scale-95 transition">
+                <div class="min-w-0">
+                  <div class="text-[10px] font-medium text-sec">Район и сезон</div>
+                  <div id="currentDistrictSeasonSub" class="text-xs font-bold truncate mt-0.5">Центр-Юг • Авто</div>
+                </div>
+                <svg class="w-4 h-4 shrink-0 opacity-60" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+
+            <!-- 7. БЛОК 2: СРЕДНЯЯ ДОПЛАТА ЗА СПРОС И ДОХОД В ЧАС -->
+            <section class="ya-card p-3.5 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <h2 id="block2Title" class="text-xs font-bold tracking-tight">Средняя доплата за спрос и общий доход в час</h2>
+                <button type="button" onclick="clearSelectedSlots()" id="btnClearSlots" title="Сбросить выбор слотов" class="text-[10px] font-semibold px-2 py-0.5 rounded-lg ya-badge-red hover:opacity-90 active:scale-95 transition shrink-0">
+                  Сбросить ✕
+                </button>
+              </div>
+              <div class="flex items-center justify-between gap-2 bg-black/15 py-1.5 px-2.5 rounded-xl">
+                <span id="selectedSlotsCounter" class="text-[10px] font-bold truncate">Выбрано: 5 сл. (20ч) • Ср. +57%</span>
+              </div>
+              <div class="w-full overflow-x-auto custom-scroll">
+                <table class="w-full min-w-[340px] table-fixed text-center border-separate border-spacing-1 text-[10px]">
+                  <thead>
+                    <tr class="font-semibold text-[10px] text-sec">
+                      <th scope="col" class="w-[66px] text-left pl-0.5 py-1">Часы</th>
+                      <th scope="col">Пн</th>
+                      <th scope="col">Вт</th>
+                      <th scope="col">Ср</th>
+                      <th scope="col">Чт</th>
+                      <th scope="col">Пт</th>
+                      <th scope="col">Сб</th>
+                      <th scope="col">Вс</th>
+                    </tr>
+                  </thead>
+                  <tbody id="heatmapTableBody"></tbody>
+                </table>
+              </div>
+              <div id="planningActionContainer" class="grid grid-cols-12 gap-2 pt-1">
+                <button type="button" onclick="selectTop5Slots()" class="col-span-4 ya-subcard py-2.5 px-2 text-[11px] leading-tight font-bold text-center hover:opacity-90 active:scale-95 transition">
+                  Топ 5 слотов<br/><span class="text-[10px] font-normal opacity-75">(20 часов)</span>
+                </button>
+                <button id="btnPlanSlots" type="button" onclick="planSelectedSlots()" class="col-span-8 rounded-2xl py-2.5 px-3 text-left active:scale-98 transition flex items-center justify-between btn-primary">
+                  <div>
+                    <div class="text-xs font-extrabold">Запланировать слоты</div>
+                    <div id="plannedProfitEstimate" class="text-[10px] font-semibold opacity-85 mt-0.5">Расчет прибыли: ~15 240 ₽ (762 ₽/ч)</div>
+                  </div>
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <!-- ЗОНА 3: ПЕРЕКЛЮЧАТЕЛЬ СРАВНЕНИЯ + БЛОК 3 (СРАВНЕНИЕ ПОКАЗАТЕЛЕЙ) -->
+          <div id="areaBlock3" class="area-block3 space-y-2 hidden">
+            <!-- 8. ПЕРЕКЛЮЧАТЕЛЬ СРАВНЕНИЯ -->
+            <div class="ya-segmented grid grid-cols-3 gap-1">
+              <button type="button" onclick="setCompareMode('transport')" id="btnComp-transport" class="py-1.5 text-[11px] ya-seg-btn ya-seg-btn-active">Транспорт</button>
+              <button type="button" onclick="setCompareMode('slot')" id="btnComp-slot" class="py-1.5 text-[11px] ya-seg-btn">Тип слота</button>
+              <button type="button" onclick="setCompareMode('total')" id="btnComp-total" class="py-1.5 text-[11px] ya-seg-btn">Тотал</button>
+            </div>
+
+            <!-- 9. БЛОК 3: СРАВНЕНИЕ ПОКАЗАТЕЛЕЙ -->
+            <section class="ya-card p-3.5 space-y-2.5">
+              <h2 class="text-xs font-bold tracking-tight">Сравнение средних показателей</h2>
+              <div class="overflow-x-auto custom-scroll rounded-xl border border-strong">
+                <table class="w-auto border-collapse text-[10px] text-left">
+                  <thead id="compareTableHead" class="border-b bg-elevated text-sec"></thead>
+                  <tbody id="compareTableBody" class="divide-y divide-[var(--border-subtle)]"></tbody>
+                  <tfoot id="compareTableFoot" class="border-t font-bold bg-elevated"></tfoot>
+                </table>
+              </div>
+            </section>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- ЭКРАН 2: ВЫБОР РАЙОНА И СЕЗОНА                                            -->
+      <!-- ========================================================================= -->
+      <div id="screenMiddleSpec" class="app-shell rounded-[32px] p-3.5 sm:p-4 space-y-3.5 hidden">
+        <header class="flex items-center justify-between gap-2">
+          <button type="button" onclick="closeMiddleScreen()" class="ya-nav-btn h-10 px-3.5 flex items-center gap-1.5 text-xs font-semibold active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            <span>Назад</span>
+          </button>
+          <h2 class="font-extrabold text-sm sm:text-base text-center flex-1">Район и сезон</h2>
+          <div class="w-16"></div>
+        </header>
+
+        <div class="ya-card p-3.5 space-y-3.5">
+          <div>
+            <div class="text-xs font-bold mb-2">Сезон года</div>
+            <div class="ya-segmented grid grid-cols-5 gap-1">
+              <button type="button" onclick="setSeason('auto')" id="btnSeason-auto" class="py-1.5 px-1 text-[10px] ya-seg-btn ya-seg-btn-active">Авто (4н)</button>
+              <button type="button" onclick="setSeason('summer')" id="btnSeason-summer" class="py-1.5 px-1 text-[10px] ya-seg-btn">Лето</button>
+              <button type="button" onclick="setSeason('autumn')" id="btnSeason-autumn" class="py-1.5 px-1 text-[10px] ya-seg-btn">Осень</button>
+              <button type="button" onclick="setSeason('winter')" id="btnSeason-winter" class="py-1.5 px-1 text-[10px] ya-seg-btn">Зима</button>
+              <button type="button" onclick="setSeason('spring')" id="btnSeason-spring" class="py-1.5 px-1 text-[10px] ya-seg-btn">Весна</button>
+            </div>
+          </div>
+
+          <button id="btnOpenRealMap" type="button" onclick="openRealMapModal()" class="w-full rounded-2xl py-3 px-4 font-extrabold text-xs flex items-center justify-between shadow active:scale-98 transition ya-btn-slate">
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+              <span>Выбрать район на карте</span>
+            </span>
+            <span class="text-[11px] font-bold opacity-80">Открыть карту →</span>
+          </button>
+
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold">Список районов</span>
+              <span id="districtListUnitHint" class="text-[10px] text-sec">Средняя / Пик</span>
+            </div>
+            <div id="districtListContainer" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- ЭКРАН 3: НАСТРОЙКИ                                                        -->
+      <!-- ========================================================================= -->
+      <div id="screenSettings" class="app-shell rounded-[32px] p-3.5 sm:p-4 space-y-3.5 hidden">
+        <header class="flex items-center justify-between gap-2">
+          <button type="button" onclick="closeSettingsScreen()" class="ya-nav-btn h-10 px-3.5 flex items-center gap-1.5 text-xs font-semibold active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            <span>Назад</span>
+          </button>
+          <h2 class="font-extrabold text-sm sm:text-base text-center flex-1">Настройки</h2>
+          <div class="w-16"></div>
+        </header>
+
+        <div class="ya-card p-3.5 space-y-3.5">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xs sm:text-sm font-bold">Расходы за неделю</h3>
+              <p class="text-[10px] text-sec">Учитываются при расчете чистой прибыли</p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="resetExpensesToDefault()" title="Вернуть изначальные статьи и суммы расходов по умолчанию" class="px-2.5 py-1 rounded-xl text-[10px] font-bold ya-subcard hover:opacity-90 active:scale-95 transition">
+                Сбросить по умолчанию
+              </button>
+              <span id="totalWeeklyExpenseBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-xl bg-rose-500/15 text-rose-400">0 ₽/нед</span>
+            </div>
+          </div>
+
+          <!-- НАСТРОЙКИ РАСХОДОВ: В МОБИЛЬНОЙ ВЕРСИИ ТРАНСПОРТ ВВЕРХУ, ДЕНЬ СТАРТА ВНИЗУ; В ПК — СТАТЬИ СЛЕВА, ТРАНСПОРТ И ДЕНЬ СТАРТА СПРАВА -->
+          <div id="settingsExpensesSplit">
+            <!-- 1. ТИП ПЕРЕДВИЖЕНИЯ (ПРЕСЕТЫ РАСХОДОВ) -->
+            <div id="settingsPresetsBlock" class="space-y-1.5">
+              <div class="text-[11px] font-medium mb-1.5 text-sec">Тип передвижения (средние расходы по умолчанию):</div>
+              <div id="presetButtonsContainer" class="grid grid-cols-2 gap-1.5">
+                <button type="button" onclick="applyTransportPreset('walk')" id="presetBtn-walk" class="py-2 px-2.5 rounded-xl text-left transition flex items-center justify-between">
+                  <span class="text-xs font-bold">🚶 Пеший</span>
+                  <span id="presetSum-walk" class="text-[10px] font-semibold opacity-80">0 ₽</span>
+                </button>
+                <button type="button" onclick="applyTransportPreset('bike')" id="presetBtn-bike" class="py-2 px-2.5 rounded-xl text-left transition flex items-center justify-between">
+                  <span class="text-xs font-bold">🚲 Вело</span>
+                  <span id="presetSum-bike" class="text-[10px] font-semibold opacity-80">0 ₽</span>
+                </button>
+                <button type="button" onclick="applyTransportPreset('ebike')" id="presetBtn-ebike" class="py-2 px-2.5 rounded-xl text-left transition flex items-center justify-between">
+                  <span class="text-xs font-bold">⚡ Электровело</span>
+                  <span id="presetSum-ebike" class="text-[10px] font-semibold opacity-80">0 ₽</span>
+                </button>
+                <button type="button" onclick="applyTransportPreset('car')" id="presetBtn-car" class="py-2 px-2.5 rounded-xl text-left transition flex items-center justify-between">
+                  <span class="text-xs font-bold">🚗 Авто</span>
+                  <span id="presetSum-car" class="text-[10px] font-semibold opacity-80">9 600 ₽</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. СТАТЬИ РАСХОДОВ СО СЛАЙДЕРАМИ -->
+            <div id="settingsExpensesLeft" class="space-y-2.5">
+              <div class="text-[11px] font-medium text-sec">Постоянные статьи расходов:</div>
+              <div id="expenseSlidersContainer" class="space-y-2.5"></div>
+
+              <div id="addExpenseForm" class="hidden ya-subcard p-2.5 space-y-2">
+                <div class="text-[11px] font-semibold">Название расхода:</div>
+                <div class="flex gap-2">
+                  <input type="text" id="newExpenseNameInput" maxlength="40" placeholder="Напр.: Бензин, Связь, ТО" class="flex-1 px-3 py-1.5 rounded-xl bg-black/20 border border-white/15 text-xs focus:outline-none focus:border-[#1E293B] dark:focus:border-[#475569] text-main" />
+                  <button type="button" onclick="confirmAddCustomExpense()" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold btn-primary">Добавить</button>
+                </div>
+              </div>
+
+              <button type="button" onclick="toggleAddExpenseForm()" class="w-full ya-subcard py-2.5 px-3 text-xs font-bold text-center hover:opacity-90 active:scale-98 transition">+ Добавить статью расхода</button>
+            </div>
+
+            <!-- 3. ДЕНЬ СТАРТА НЕДЕЛИ (ЦИКЛ АРЕНДЫ) -->
+            <div id="weekStartBlock" class="pt-2 border-t border-subtle">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-bold">День старта недели (цикл аренды)</span>
+                <span id="lblCurrentWeekStart" class="text-[10px] font-semibold text-sec">Понедельник</span>
+              </div>
+              <div class="ya-segmented grid grid-cols-7 gap-1" id="weekStartSelector">
+                <button type="button" onclick="setWeekStartDay(0)" id="btnWeekStart-0" aria-label="Понедельник" class="py-1 text-[11px] ya-seg-btn ya-seg-btn-active">Пн</button>
+                <button type="button" onclick="setWeekStartDay(1)" id="btnWeekStart-1" aria-label="Вторник" class="py-1 text-[11px] ya-seg-btn">Вт</button>
+                <button type="button" onclick="setWeekStartDay(2)" id="btnWeekStart-2" aria-label="Среда" class="py-1 text-[11px] ya-seg-btn">Ср</button>
+                <button type="button" onclick="setWeekStartDay(3)" id="btnWeekStart-3" aria-label="Четверг" class="py-1 text-[11px] ya-seg-btn">Чт</button>
+                <button type="button" onclick="setWeekStartDay(4)" id="btnWeekStart-4" aria-label="Пятница" class="py-1 text-[11px] ya-seg-btn">Пт</button>
+                <button type="button" onclick="setWeekStartDay(5)" id="btnWeekStart-5" aria-label="Суббота" class="py-1 text-[11px] ya-seg-btn">Сб</button>
+                <button type="button" onclick="setWeekStartDay(6)" id="btnWeekStart-6" aria-label="Воскресенье" class="py-1 text-[11px] ya-seg-btn">Вс</button>
+              </div>
+              <p class="text-[10px] text-sec mt-1">День начала аренды/списания. Недельные расходы распределяются по 7-дневным циклам с этого дня.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="ya-card p-3.5">
+          <label class="flex items-center justify-between cursor-pointer select-none">
+            <div>
+              <div class="text-xs sm:text-sm font-bold">Учитывать цели</div>
+              <div class="text-[10px] text-sec">Включать бонусные цели в расчет прибыли и графиков</div>
+            </div>
+            <input type="checkbox" id="chkIncludeGoals" onchange="onToggleGoals(this.checked)" class="w-5 h-5 rounded accent-[#1E293B] dark:accent-[#334155] cursor-pointer" />
+          </label>
+        </div>
+
+        <div class="ya-card p-3.5 space-y-3">
+          <div>
+            <h3 class="text-xs sm:text-sm font-bold">Столбцы таблицы и их порядок</h3>
+            <p class="text-[10px] mt-0.5 text-sec">Отметьте нужные поля. Удерживайте строку (долгий тап) и тяните вверх/вниз</p>
+          </div>
+          <div class="ya-subcard p-2 text-[11px] flex items-center justify-between opacity-75">
+            <span class="font-bold">0. Дата (опорный столбец)</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-black/20">Фиксирован</span>
+          </div>
+          <div id="reorderableColumnsList" class="space-y-1 text-xs select-none"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+  </div><!-- /#appRootWrapper -->
+
+  <!-- МОДАЛЬНОЕ ОКНО: РЕАЛЬНАЯ КАРТА (LEAFLET) -->
+  <dialog id="realMapModal" onclick="if(event.target===this) cancelRealMapModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4" closedby="any" aria-labelledby="realMapTitle">
+    <div class="app-shell w-full max-w-lg rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-white/15">
+      <div class="p-3.5 flex items-center justify-between border-b border-subtle">
+        <div>
+          <h3 id="realMapTitle" class="text-sm font-extrabold">Карта районов доставки</h3>
+          <p id="realMapSubtitle" class="text-[11px] text-sec">Нажмите на выделенный район для выбора</p>
+        </div>
+        <button type="button" onclick="cancelRealMapModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <div class="relative w-full h-[380px] bg-[#181A20]">
+        <div id="leafletMapContainer" class="w-full h-full z-10"></div>
+      </div>
+      <div class="p-3.5 flex items-center justify-between gap-2 border-t border-subtle bg-card">
+        <div class="min-w-0">
+          <div class="text-[10px] text-sec">Выбранный полигон:</div>
+          <div id="mapSelectedDistrictName" class="text-xs font-extrabold truncate">Центр-Юг (Деловой узел / Арка)</div>
+        </div>
+        <button type="button" onclick="confirmRealMapDistrict()" class="px-4 py-2 rounded-xl text-xs font-extrabold shrink-0 btn-primary">Применить район</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ПОДТВЕРЖДЕНИЕ ПЛАНИРОВАНИЯ СЛОТОВ -->
+  <dialog id="planSlotsModal" onclick="if(event.target===this) closePlanSlotsModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="planSlotsTitle">
+    <div class="app-shell w-full max-w-md rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-white/15">
+      <div class="p-4 flex items-center justify-between border-b border-subtle">
+        <div>
+          <h3 id="planSlotsTitle" class="text-sm font-extrabold">Подтверждение слотов</h3>
+          <p class="text-[11px] text-sec">Проверьте параметры перед планированием</p>
+        </div>
+        <button type="button" onclick="closePlanSlotsModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <div class="p-4 space-y-3 text-xs max-h-[70vh] overflow-y-auto custom-scroll">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="ya-subcard p-2.5">
+            <div class="text-[10px] text-sec">Тип передвижения</div>
+            <div id="planModalTransport" class="font-extrabold mt-0.5">⚡ Электровело</div>
+          </div>
+          <div class="ya-subcard p-2.5">
+            <div class="text-[10px] text-sec">Район доставки</div>
+            <div id="planModalDistrict" class="font-extrabold mt-0.5 truncate">Центр-Юг</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="ya-subcard p-2.5">
+            <div class="text-[10px] text-sec">Тотал часы и прибыль</div>
+            <div id="planModalTotal" class="font-extrabold text-emerald-400 mt-0.5">20 ч • ~15 240 ₽</div>
+          </div>
+          <div class="ya-subcard p-2.5">
+            <div class="text-[10px] text-sec">Средние доплата и ₽/ч</div>
+            <div id="planModalAvg" class="font-extrabold mt-0.5">+57% • 762 ₽/ч</div>
+          </div>
+        </div>
+        <div>
+          <div class="text-[11px] font-bold mb-1.5">Выбранные слоты:</div>
+          <div id="planModalSlotsList" class="space-y-1.5 max-h-44 overflow-y-auto custom-scroll pr-1"></div>
+        </div>
+      </div>
+      <div class="p-3.5 grid grid-cols-2 gap-2 border-t border-subtle bg-card">
+        <button type="button" onclick="closePlanSlotsModal()" class="ya-subcard py-2.5 px-4 rounded-xl text-xs font-bold hover:opacity-90 active:scale-95 transition">Отменить</button>
+        <button type="button" onclick="confirmPlanSlots()" class="py-2.5 px-4 rounded-xl text-xs font-extrabold active:scale-95 transition btn-primary">Подтвердить</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: СПРАВКА О РАСЧЕТЕ ПРОГНОЗА -->
+  <dialog id="forecastInfoModal" onclick="if(event.target===this) closeForecastInfoModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="forecastTitle">
+    <div class="app-shell w-full max-w-md rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-white/15">
+      <div class="p-4 flex items-center justify-between border-b border-subtle">
+        <div>
+          <h3 id="forecastTitle" class="text-sm font-extrabold">Как считается прогноз (Авто)</h3>
+          <p class="text-[11px] text-sec">Расчет под ваш график и расходы</p>
+        </div>
+        <button type="button" onclick="closeForecastInfoModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <div class="p-4 space-y-3 text-xs leading-relaxed max-h-[70vh] overflow-y-auto custom-scroll">
+        <p class="text-sec">У вас пока нет отработанных слотов на <b>Авто</b>. Чтобы вы могли оценить реальную выгоду или возможный убыток от перехода, система строит персональный прогноз:</p>
+        <div class="ya-subcard p-3 space-y-1.5">
+          <div class="font-extrabold text-[11px]">Формула расчета прибыли в час:</div>
+          <div class="text-[11px] font-mono p-2 rounded-lg bg-black/20">(Ср. доход Авто по городу × Ваши часы − Налог 6% − Расходы на Авто) ÷ Ваши часы</div>
+          <div class="text-[10px] text-sec">• Показатели заказов берутся из средних данных курьеров на Авто в вашем городе.<br/>• Количество часов берется из вашего графика за выбранный период.</div>
+        </div>
+        <div class="space-y-2">
+          <div class="font-extrabold text-[11px]">Как использовать эти данные:</div>
+          <div class="ya-subcard p-2.5">
+            <div class="font-bold text-rose-400">Пример 1: Мало часов — риск уйти в минус</div>
+            <p class="text-[11px] mt-0.5 text-sec">Аренда машины платится постоянно (~9 600 ₽/нед). При работе 8–10 часов в неделю расходы на авто уведут прибыль в минус.</p>
+          </div>
+          <div class="ya-subcard p-2.5">
+            <div class="font-bold text-emerald-400">Пример 2: Полная занятость — выход в плюс</div>
+            <p class="text-[11px] mt-0.5 text-sec">При работе 40–50 часов в неделю постоянные расходы распределяются на много часов, и чистая ставка на Авто становится выгодной.</p>
+          </div>
+        </div>
+      </div>
+      <div class="p-3.5 border-t border-subtle bg-card">
+        <button type="button" onclick="closeForecastInfoModal()" class="w-full py-2.5 px-4 rounded-xl text-xs font-extrabold active:scale-95 transition btn-primary">Понятно</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: СПРАВКА О СТАТЬЕ РАСХОДОВ И КОРРЕКТИРОВКАХ -->
+  <dialog id="expenseInfoModal" onclick="if(event.target===this) closeExpenseInfoModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="expenseInfoTitle">
+    <div class="app-shell w-full max-w-md rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-white/15">
+      <div class="p-4 flex items-center justify-between border-b border-subtle">
+        <div class="min-w-0 pr-2">
+          <h3 id="expenseInfoTitle" class="text-sm font-extrabold truncate">Справка о расходах</h3>
+          <p id="expenseInfoSubtitle" class="text-[11px] text-sec truncate">Откуда берутся данные и как рассчитываются</p>
+        </div>
+        <button type="button" onclick="closeExpenseInfoModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+      <div id="expenseInfoBody" class="p-4 space-y-3 text-xs leading-relaxed max-h-[70vh] overflow-y-auto custom-scroll">
+        <!-- Контент генерируется динамически в script.js -->
+      </div>
+      <div id="expenseInfoFooter" class="p-3.5 border-t border-subtle bg-card flex items-center justify-end gap-2">
+        <button type="button" onclick="closeExpenseInfoModal()" class="py-2.5 px-4 rounded-xl text-xs font-extrabold active:scale-95 transition btn-primary">Понятно</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: МАСТЕР ИМПОРТА (ВАРИАНТ 5) -->
+  <dialog id="importDataModal" onclick="if(event.target===this) closeImportModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="importModalTitle">
+    <div class="app-shell w-full max-w-lg rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-white/15">
+      <!-- Шапка -->
+      <div class="p-4 flex items-center justify-between border-b border-subtle">
+        <div class="min-w-0 pr-2">
+          <h3 id="importModalTitle" class="text-sm font-extrabold truncate text-main flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 10l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Импорт данных
+          </h3>
+        </div>
+        <button type="button" onclick="closeImportModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+
+      <!-- Содержимое -->
+      <div class="p-4 space-y-3.5 text-xs leading-relaxed max-h-[75vh] overflow-y-auto custom-scroll">
+        <!-- 1. Основной импорт: Drag & Drop Зона -->
+        <div id="importDropZone" onclick="triggerUserDataFileInput()" class="group border-2 border-dashed border-subtle hover:border-blue-500 dark:hover:border-blue-400 rounded-2xl p-6 text-center cursor-pointer transition bg-card hover:bg-elevated flex flex-col items-center justify-center gap-2">
+          <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center group-hover:scale-110 transition duration-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          </div>
+          <div>
+            <div class="font-bold text-main text-xs sm:text-sm">Перетащите файл сюда или нажмите для выбора</div>
+            <div class="text-[11px] text-sec mt-0.5">Поддерживаются форматы: .xlsx, .xls, .csv, .tsv, .txt (до 25 МБ)</div>
+          </div>
+        </div>
+
+        <!-- 2. Ручной импорт: Блок ручного ввода и редактирования -->
+        <div class="p-3.5 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="font-extrabold text-xs text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              Ручной ввод или редактирование
+            </div>
+            <div class="text-[11px] text-sec mt-0.5">Вносите смены в интерактивной таблице, меняйте значения на лету, фильтруйте и добавляйте новые строки без файлов.</div>
+          </div>
+          <button type="button" onclick="closeImportModal(); openManualEditorModal();" class="ya-nav-btn px-3 py-2 rounded-xl text-xs font-bold text-violet-600 dark:text-violet-400 flex items-center justify-center gap-1.5 shrink-0 active:scale-95 shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span>Ввести вручную</span>
+          </button>
+        </div>
+
+        <!-- 3. Скачивание шаблона: Блок скачивания шаблона -->
+        <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Нужен образец таблицы?
+            </div>
+            <div class="text-[11px] text-sec mt-0.5">Скачайте шаблон таблицы. Обязательные поля отмечены звездочкой (<span class="text-red-500 font-bold">*</span>).</div>
+          </div>
+          <button type="button" onclick="downloadSampleImportFile()" class="ya-nav-btn px-3 py-2 rounded-xl text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1.5 shrink-0 active:scale-95 shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 10l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Скачать образец (.xlsx)</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Футер -->
+      <div class="p-3.5 border-t border-subtle bg-card flex items-center justify-end">
+        <button type="button" onclick="closeImportModal()" class="py-2 px-4 rounded-xl text-xs font-bold active:scale-95 transition btn-primary">Закрыть</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: РУЧНОЙ ВВОД И РЕДАКТИРОВАНИЕ ДАННЫХ -->
+  <dialog id="manualEditorModal" onclick="if(event.target===this) closeManualEditorModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4" closedby="any" aria-labelledby="manualEditorTitle">
+    <div class="app-shell w-full max-w-[96vw] xl:max-w-7xl max-h-[92vh] rounded-[24px] overflow-hidden flex flex-col shadow-2xl border border-white/15">
+      <!-- Шапка -->
+      <div class="p-3.5 sm:p-4 flex items-center justify-between border-b border-subtle bg-card shrink-0" data-template-cols="20 колонок шаблона">
+        <div class="min-w-0 pr-2">
+          <div class="flex items-center gap-2">
+            <span class="p-1.5 rounded-lg bg-violet-500/10 text-violet-500 shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </span>
+            <h3 id="manualEditorTitle" class="text-sm font-extrabold text-main truncate">
+              Ручной ввод данных
+            </h3>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" onclick="closeManualEditorModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold">✕</button>
+        </div>
+      </div>
+
+      <!-- Панель управления и фильтров -->
+      <div class="p-3 border-b border-subtle bg-elevated/40 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0 select-none">
+        <div class="flex items-center flex-wrap gap-2">
+          <!-- Кнопка добавления строки -->
+          <button type="button" onclick="addManualEditorRow()" class="px-3 py-1.5 rounded-xl font-bold bg-violet-600 hover:bg-violet-500 text-white flex items-center gap-1.5 shadow-sm active:scale-95 transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            <span>Добавить смену</span>
+          </button>
+
+          <!-- Фильтр по транспорту -->
+          <select id="manualEditorTransportFilter" onchange="filterManualEditorTable()" class="manual-table-input px-2.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer">
+            <option value="all">Весь транспорт</option>
+            <option value="Пеший">Пеший</option>
+            <option value="Велосипед">Велосипед</option>
+            <option value="Электровелосипед">Электровелосипед</option>
+            <option value="Авто">Авто</option>
+          </select>
+
+          <!-- Поиск по дате -->
+          <div class="relative flex items-center">
+            <input type="text" id="manualEditorSearchInput" oninput="filterManualEditorTable()" placeholder="Поиск по дате (ДД.ММ.ГГГГ)..." class="manual-table-input pl-7 pr-2.5 py-1.5 rounded-xl text-xs w-44" />
+            <svg class="w-3.5 h-3.5 text-sec absolute left-2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+
+          <!-- Кнопки быстрой прокрутки вверх и вниз -->
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="scrollManualEditorTableToTop()" title="Прокрутить таблицу в самый верх" aria-label="Прокрутить таблицу в самый верх" class="ya-nav-btn w-8 h-8 flex items-center justify-center rounded-xl text-sec hover:text-main transition active:scale-95 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+            </button>
+            <button type="button" onclick="scrollManualEditorTableToBottom()" title="Прокрутить таблицу в самый низ" aria-label="Прокрутить таблицу в самый низ" class="ya-nav-btn w-8 h-8 flex items-center justify-center rounded-xl text-sec hover:text-main transition active:scale-95 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span id="manualEditorRowCount" class="text-[11px] text-sec font-medium">Строк: 0</span>
+          <button type="button" onclick="clearManualEditorRows()" title="Очистить все строки" class="px-2.5 py-1.5 rounded-xl text-rose-500 hover:text-rose-400 ya-nav-btn text-xs font-semibold transition active:scale-95 cursor-pointer">Очистить всё</button>
+        </div>
+      </div>
+
+      <!-- Табличная область с горизонтальным скроллом и панорамированием -->
+      <div id="manualEditorTableContainer" class="table-scroll-container flex-1 overflow-x-auto overflow-y-auto custom-scroll p-0 bg-card min-h-[260px] max-h-[58vh]" tabindex="0" role="region" aria-label="Таблица смен">
+        <table id="manualEditorTable" class="w-full text-left border-collapse text-xs whitespace-nowrap">
+          <thead class="sticky top-0 z-20 bg-elevated text-[11px] font-bold text-sec uppercase tracking-wider select-none border-b border-subtle">
+            <tr>
+              <th class="py-2 px-2 text-center w-8">#</th>
+              <th onclick="showColumnHelp('date')" title="Нажмите для описания поля" class="py-2 px-2.5 min-w-[130px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Дата <span class="text-rose-500">*</span></th>
+              <th onclick="showColumnHelp('start')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Время (старт) <span class="text-rose-500">*</span></th>
+              <th onclick="showColumnHelp('end')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Время (конец) <span class="text-rose-500">*</span></th>
+              <th onclick="showColumnHelp('cost')" title="Нажмите для описания поля" class="py-2 px-2.5 min-w-[110px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Стоимость (₽) <span class="text-rose-500">*</span></th>
+              <th onclick="showColumnHelp('transport')" title="Нажмите для описания поля" class="py-2 px-2.5 min-w-[125px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Транспорт <span class="text-rose-500">*</span></th>
+              <th onclick="showColumnHelp('ordersCnt')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[75px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Заказов</th>
+              <th onclick="showColumnHelp('slotType')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[95px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Тип слота</th>
+              <th onclick="showColumnHelp('slotNumber')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[70px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">№ слота</th>
+              <th onclick="showColumnHelp('dist')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[80px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Дист. (км)</th>
+              <th onclick="showColumnHelp('weight')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[75px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Вес (кг)</th>
+              <th onclick="showColumnHelp('waitRub')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Ожид. (₽)</th>
+              <th onclick="showColumnHelp('waitMin')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[80px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Ожид. (мин)</th>
+              <th onclick="showColumnHelp('surgePct')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Спрос (%)</th>
+              <th onclick="showColumnHelp('ratingPct')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Рейтинг (%)</th>
+              <th onclick="showColumnHelp('bonus')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Бонус (₽)</th>
+              <th onclick="showColumnHelp('tips')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Чаевые (₽)</th>
+              <th onclick="showColumnHelp('goal')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Цель (₽)</th>
+              <th onclick="showColumnHelp('adjustment')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Корр. (₽)</th>
+              <th onclick="showColumnHelp('adjustmentReason')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[160px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Причина корр.</th>
+              <th onclick="showColumnHelp('expense')" title="Нажмите для описания поля" class="py-2 px-2 min-w-[85px] cursor-pointer hover:text-main hover:bg-black/5 dark:hover:bg-white/5 transition">Расход (₽)</th>
+              <th class="py-2 px-2 text-center w-10">✕</th>
+            </tr>
+          </thead>
+          <tbody id="manualEditorTableBody" class="divide-y divide-subtle font-normal">
+            <!-- Строки генерируются динамически через renderManualEditorRows() -->
+          </tbody>
+        </table>
+        <div id="manualEditorEmptyNotice" class="hidden py-12 text-center text-sec text-xs">
+          <p class="font-medium text-sm text-main">Таблица смен пуста</p>
+          <p class="text-[11px] text-sec mt-1">Нажмите «Добавить смену», чтобы внести первую запись</p>
+        </div>
+      </div>
+
+      <!-- Футер модалки -->
+      <div class="p-3.5 border-t border-subtle bg-elevated/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shrink-0">
+        <div class="text-[11px] text-sec flex items-center gap-2">
+          <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Нажмите на название любой колонки, чтобы открыть описание поля и правила его заполнения.</span>
+        </div>
+        <div class="flex items-center gap-2 justify-end">
+          <button type="button" onclick="closeManualEditorModal()" class="px-3.5 py-2 rounded-xl ya-nav-btn font-semibold text-main active:scale-95 transition cursor-pointer">
+            Отмена
+          </button>
+          <button type="button" onclick="applyManualEditorData()" class="px-4 py-2 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md active:scale-95 transition flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span>Применить в аналитику</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: СПРАВКА ПО КОЛОНКЕ РУЧНОГО ВВОДА -->
+  <dialog id="manualColumnHelpModal" onclick="if(event.target===this) closeColumnHelpModal()" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="colHelpTitle">
+    <div class="app-shell w-full max-w-md rounded-[24px] overflow-hidden flex flex-col shadow-2xl border border-subtle bg-card">
+      <div class="p-4 flex items-center justify-between border-b border-subtle">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-violet-500/15 text-violet-500 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="min-w-0">
+            <h4 id="colHelpTitle" class="text-sm font-extrabold text-main truncate">Справка по полю</h4>
+            <div id="colHelpBadge" class="mt-0.5"></div>
+          </div>
+        </div>
+        <button type="button" onclick="closeColumnHelpModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+      <div class="p-4 space-y-3 text-xs leading-relaxed">
+        <div>
+          <span class="text-[11px] font-bold text-sec uppercase tracking-wider block mb-1">Что означает поле:</span>
+          <p id="colHelpDesc" class="text-main leading-relaxed"></p>
+        </div>
+        <div class="p-3 rounded-xl bg-elevated border border-subtle space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-sec text-[11px]">Формат ввода:</span>
+            <span id="colHelpFormat" class="font-mono font-semibold text-main text-[11px]"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sec text-[11px]">Пример значения:</span>
+            <span id="colHelpExample" class="font-semibold text-emerald-500 dark:text-emerald-400 text-[11px]"></span>
+          </div>
+        </div>
+        <div>
+          <span class="text-[11px] font-bold text-sec uppercase tracking-wider block mb-1">Правила заполнения:</span>
+          <p id="colHelpRules" class="text-sec leading-relaxed text-[11px]"></p>
+        </div>
+      </div>
+      <div class="p-3.5 border-t border-subtle bg-elevated/40 flex items-center justify-end">
+        <button type="button" onclick="closeColumnHelpModal()" class="px-4 py-2 rounded-xl font-bold btn-primary text-xs shadow-md active:scale-95 transition cursor-pointer">Понятно</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: СИНХРОНИЗАЦИЯ И ХРАНЕНИЕ ДАННЫХ -->
+  <dialog id="syncModal" onclick="if(event.target===this) closeSyncModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="syncModalTitle">
+    <div class="app-shell w-full max-w-lg rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-white/15 bg-shell">
+      <!-- Шапка (выровненный заголовок с иконкой) -->
+      <div class="p-4 flex items-center justify-between border-b border-subtle bg-card">
+        <div class="min-w-0 pr-2 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 12a8 8 0 0 1 14.93-4M20 4v4h-4"></path>
+              <path d="M20 12a8 8 0 0 1-14.93 4M4 20v-4h4"></path>
+            </svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 id="syncModalTitle" class="text-sm font-extrabold truncate text-main">Синхронизация данных</h3>
+            <p class="text-[11px] text-sec mt-0.5 truncate">Выберите режим хранения смен и доступа с разных устройств</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeSyncModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+
+      <!-- Содержимое (Строгий порядок 4 вариантов) -->
+      <div class="p-4 space-y-3 text-xs leading-relaxed max-h-[75vh] overflow-y-auto custom-scroll">
+        
+        <!-- ВАРИАНТ 1: Без синхронизации (только сессия) -->
+        <div id="syncCard-session" class="sync-option-card p-3.5 rounded-2xl border border-subtle hover:border-slate-400/40 bg-card transition cursor-pointer flex items-start gap-3" onclick="selectSyncMode('session')">
+          <div class="w-8 h-8 rounded-xl bg-slate-500/10 text-slate-400 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-extrabold text-main text-xs">Без сохранения (только сессия)</div>
+            <div class="text-[11px] text-sec mt-0.5">Данные хранятся в оперативной памяти (RAM) до закрытия вкладки. Максимальная конфиденциальность без записи на диск.</div>
+            <div id="sessionSyncStatusContainer" class="mt-2 text-[11px]">
+              <span id="sessionSyncStatusBadge" class="text-sec">Статус: <b class="text-slate-400">Отключено</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ВАРИАНТ 2: IndexedDB (локально в браузере) - DEFAULT -->
+        <div id="syncCard-indexeddb" class="sync-option-card p-3.5 rounded-2xl border border-subtle hover:border-emerald-500/40 bg-card transition cursor-pointer flex items-start gap-3" onclick="selectSyncMode('indexeddb')">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16m-8 4v6m-4-3h8"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-extrabold text-main text-xs">Локально на этом устройстве</span>
+              <span class="px-1.5 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-sec text-[10px] font-semibold border border-subtle">По умолчанию</span>
+            </div>
+            <div class="text-[11px] text-sec mt-0.5">Автоматическое сохранение смен и настроек в браузере (IndexedDB). Доступно офлайн, восстанавливается при перезагрузке.</div>
+            <div id="indexedDbSyncStatusContainer" class="mt-2 text-[11px] space-y-1.5">
+              <div><span id="indexedDbSyncStatusBadge" class="text-sec">Статус: <b class="text-slate-400">Отключено</b></span></div>
+              <div id="indexedDbTimestampsRow" class="hidden grid grid-cols-2 gap-2 pt-2 border-t border-subtle text-[10.5px] text-sec">
+                <div class="p-2 rounded-xl bg-card border border-subtle flex flex-col gap-0.5">
+                  <span class="text-[10px] text-sec font-medium">Сохранение заказов:</span>
+                  <span id="idbOrdersSyncTime" class="text-main font-semibold text-xs truncate">—</span>
+                </div>
+                <div class="p-2 rounded-xl bg-card border border-subtle flex flex-col gap-0.5">
+                  <span class="text-[10px] text-sec font-medium">Сохранение настроек:</span>
+                  <span id="idbSettingsSyncTime" class="text-main font-semibold text-xs truncate">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ВАРИАНТ 3: Яндекс Диск (облако между устройствами) -->
+        <div id="syncCard-yandex" class="sync-option-card p-3.5 rounded-2xl border border-subtle hover:border-blue-500/40 bg-card transition cursor-pointer flex items-start gap-3" onclick="selectSyncMode('yandex')">
+          <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-extrabold text-main text-xs">Облако Яндекс Диск (между устройствами)</div>
+            <div class="text-[11px] text-sec mt-0.5">Синхронизация смен и настроек между вашими устройствами через защищенную папку на Яндекс.Диске.</div>
+            <div id="yandexSyncStatusContainer" class="mt-2 text-[11px] space-y-1.5">
+              <div class="flex items-center justify-between flex-wrap gap-1.5">
+                <span id="yandexSyncStatusBadge" class="text-sec">Статус: <b class="text-slate-400">Отключено</b></span>
+                <span class="text-[10.5px] font-semibold text-sec/80">Подключение через Яндекс ID</span>
+              </div>
+              <div id="yandexTimestampsRow" class="hidden grid grid-cols-2 gap-2 pt-2 border-t border-subtle text-[10.5px] text-sec">
+                <div class="p-2 rounded-xl bg-card border border-subtle flex flex-col gap-0.5">
+                  <span class="text-[10px] text-sec font-medium">Синхронизация заказов:</span>
+                  <span id="yandexOrdersSyncTime" class="text-main font-semibold text-xs truncate">—</span>
+                </div>
+                <div class="p-2 rounded-xl bg-card border border-subtle flex flex-col gap-0.5">
+                  <span class="text-[10px] text-sec font-medium">Синхронизация настроек:</span>
+                  <span id="yandexSettingsSyncTime" class="text-main font-semibold text-xs truncate">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ВАРИАНТ 4: Скачать смены (.xlsx и .csv) -->
+        <div id="btnModalDownloadBackup" class="p-3.5 rounded-2xl bg-elevated/40 border border-subtle flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-extrabold text-xs text-main">Резервная копия (.xlsx и .csv)</div>
+            <div class="text-[11px] text-sec mt-0.5 leading-relaxed">Выгрузка ваших смен в файл для сохранения копии на устройство или внешнего анализа данных.</div>
+            <div class="mt-2.5 flex flex-wrap items-center gap-2">
+              <button type="button" id="btnModalDownloadBackupXlsx" onclick="downloadBackupXlsx()" class="ya-nav-btn px-3 py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 shadow-sm btn-plan-disabled" disabled title="Доступно только для ваших внесённых смен">
+                <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5m-5 5V3"/></svg>
+                <span>Скачать .xlsx</span>
+              </button>
+              <button type="button" id="btnModalDownloadBackupCsv" onclick="downloadBackupCsv()" class="ya-nav-btn px-3 py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 shadow-sm btn-plan-disabled" disabled title="Доступно только для ваших внесённых смен">
+                <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5m-5 5V3"/></svg>
+                <span>Скачать .csv</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Футер -->
+      <div class="p-3.5 border-t border-subtle bg-card flex items-center justify-between text-xs">
+        <button type="button" id="btnResetToDemo" onclick="openResetConfirmModal()" class="text-rose-500 hover:text-rose-400 font-semibold px-2 py-1 rounded-lg hover:bg-rose-500/10 transition btn-plan-disabled" disabled>Сбросить данные к демо</button>
+        <button type="button" onclick="closeSyncModal()" class="py-2 px-4 rounded-xl text-xs font-bold active:scale-95 transition btn-primary">Готово</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: РАЗРЕШЕНИЕ КОНФЛИКТОВ СИНХРОНИЗАЦИИ -->
+  <dialog id="syncConflictModal" onclick="if(event.target===this) closeConflictModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="syncConflictTitle">
+    <div class="app-shell w-full max-w-xl rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-amber-500/30 bg-shell">
+      <!-- Шапка -->
+      <div class="p-4 flex items-center justify-between border-b border-subtle bg-card">
+        <div class="min-w-0 pr-2">
+          <h3 id="syncConflictTitle" class="text-sm font-extrabold truncate text-main flex items-center gap-2">
+            <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>Конфликт версий данных</span>
+          </h3>
+          <p class="text-[11px] text-sec mt-0.5">Данные в браузере и на Яндекс.Диске различаются. Выберите, какую версию сохранить:</p>
+        </div>
+        <button type="button" onclick="closeConflictModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+
+      <!-- Сравнительная карточка двух датасетов -->
+      <div class="p-4 space-y-4 text-xs leading-relaxed max-h-[75vh] overflow-y-auto custom-scroll">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          
+          <!-- Локальная версия (IndexedDB) -->
+          <div class="p-3.5 rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-1.5 font-extrabold text-emerald-600 dark:text-emerald-400 text-xs mb-2">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16m-8 4v6m-4-3h8"/></svg>
+                <span>Локальные данные (браузер)</span>
+              </div>
+              <div class="space-y-1.5 text-[11px] text-sec">
+                <div class="flex justify-between border-b border-subtle pb-1">
+                  <span>Свежая дата смены:</span>
+                  <b id="conflictLocalLatestDate" class="text-main">—</b>
+                </div>
+                <div class="flex justify-between border-b border-subtle pb-1">
+                  <span>Время сохранения:</span>
+                  <b id="conflictLocalSavedAt" class="text-main">—</b>
+                </div>
+                <div class="flex justify-between border-b border-subtle pb-1">
+                  <span>Количество смен:</span>
+                  <b id="conflictLocalCount" class="text-main">0</b>
+                </div>
+                <div class="flex justify-between">
+                  <span>Размер данных:</span>
+                  <b id="conflictLocalSize" class="text-main">0 КБ</b>
+                </div>
+              </div>
+            </div>
+            <button type="button" id="btnConflictKeepLocal" onclick="resolveConflictKeepLocal()" class="mt-3 w-full py-2 px-3 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md active:scale-95 transition text-xs flex items-center justify-center gap-1.5">
+              <span>Оставить локальные (Загрузить на Диск)</span>
+            </button>
+          </div>
+
+          <!-- Облачная версия (Яндекс.Диск) -->
+          <div class="p-3.5 rounded-2xl border-2 border-blue-500/40 bg-blue-500/5 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-1.5 font-extrabold text-blue-600 dark:text-blue-400 text-xs mb-2">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                <span>Облачные данные (Яндекс.Диск)</span>
+              </div>
+              <div class="space-y-1.5 text-[11px] text-sec">
+                <div class="flex justify-between border-b border-subtle pb-1">
+                  <span>Свежая дата смены:</span>
+                  <b id="conflictCloudLatestDate" class="text-main">—</b>
+                </div>
+                <div class="flex justify-between border-b border-subtle pb-1">
+                  <span>Время сохранения:</span>
+                  <b id="conflictCloudSavedAt" class="text-main">—</b>
+                </div>
+                <div class="flex justify-between border-b border-subtle pb-1">
+                  <span>Количество смен:</span>
+                  <b id="conflictCloudCount" class="text-main">0</b>
+                </div>
+                <div class="flex justify-between">
+                  <span>Размер данных:</span>
+                  <b id="conflictCloudSize" class="text-main">0 КБ</b>
+                </div>
+              </div>
+            </div>
+            <button type="button" id="btnConflictUseCloud" onclick="resolveConflictUseCloud()" class="mt-3 w-full py-2 px-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md active:scale-95 transition text-xs flex items-center justify-center gap-1.5">
+              <span>Использовать из облака (Заменить локальные)</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Футер -->
+      <div class="p-3.5 border-t border-subtle bg-card flex items-center justify-end">
+        <button type="button" onclick="closeConflictModal()" class="py-2 px-4 rounded-xl text-xs font-semibold ya-nav-btn active:scale-95 transition">Отложить</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ЮРИДИЧЕСКИЕ ДОКУМЕНТЫ (ОФЕРТА / ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ) -->
+  <dialog id="legalDocModal" onclick="if(event.target===this) closeLegalModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="legalDocTitle">
+    <div class="app-shell w-full max-w-lg rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-white/15">
+      <div class="p-4 flex items-center justify-between border-b border-subtle">
+        <div class="min-w-0 pr-2">
+          <h3 id="legalDocTitle" class="text-sm font-extrabold truncate">Юридический документ</h3>
+          <p id="legalDocSubtitle" class="text-[11px] text-sec truncate">Условия использования и защита данных</p>
+        </div>
+        <button type="button" onclick="closeLegalModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+      <div id="legalDocBody" class="p-4 space-y-3 text-xs leading-relaxed max-h-[70vh] overflow-y-auto custom-scroll text-sec">
+        <!-- Контент генерируется динамически в script.js -->
+      </div>
+      <div id="legalDocFooter" class="p-3.5 border-t border-subtle bg-card flex items-center justify-end gap-2">
+        <button type="button" onclick="closeLegalModal()" class="py-2.5 px-4 rounded-xl text-xs font-extrabold active:scale-95 transition btn-primary">Понятно</button>
+      </div>
+    </div>
+  </dialog>
+
+  
+  <!-- МОДАЛЬНОЕ ОКНО: СКАЧАТЬ КАРТОЧКУ ДОХОДА (v14.0.1) -->
+  <dialog id="exportCardModal" onclick="if(event.target===this) closeExportCardModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="exportCardModalTitle">
+    <div class="app-shell w-full max-w-md rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-white/15">
+      <!-- Шапка модалки: просто заголовок Экспорт и крестик -->
+      <div class="px-4 py-3.5 border-b border-subtle flex items-center justify-between bg-black/5 dark:bg-white/5">
+        <h2 id="exportCardModalTitle" class="text-base font-extrabold text-main">Экспорт</h2>
+        <button type="button" onclick="closeExportCardModal()" aria-label="Закрыть окно" class="w-8 h-8 rounded-full ya-nav-btn flex items-center justify-center text-sec hover:text-main cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Тело: отрендеренная карточка -->
+      <div class="p-4 overflow-y-auto max-h-[75vh] flex flex-col items-center">
+        <div id="exportCardRenderContainer" class="w-full flex justify-center overflow-x-auto p-1"></div>
+      </div>
+
+      <!-- Подвал: Кнопки скачивания и копирования -->
+      <div class="p-3.5 border-t border-subtle flex gap-2 bg-black/5 dark:bg-white/5">
+        <button type="button" onclick="downloadExportCardPNG()" id="btnDownloadCardPNG" class="flex-1 py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-extrabold text-xs transition active:scale-95 shadow flex items-center justify-center gap-1.5 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M8 8l4-4 4 4M12 4v12"/></svg>
+          <span>Скачать PNG</span>
+        </button>
+        <button type="button" onclick="copyExportCardTelegramText()" class="py-2.5 px-3 rounded-xl ya-nav-btn text-main font-bold text-xs hover:border-amber-400 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <rect x="8" y="2" width="8" height="4" rx="1" stroke-linecap="round" stroke-linejoin="round"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          </svg>
+          <span>Скопировать текстом</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: НА ЧАЙ АВТОРУ & ИНТЕРАКТИВНАЯ ЧАЙНАЯ СТАНЦИЯ (v14.0.1) -->
+  <dialog id="authorTipModal" onclick="if(event.target===this) closeAuthorTipModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4" closedby="any" aria-labelledby="authorTipModalTitle">
+    <div class="app-shell relative w-full max-w-4xl max-h-[92vh] rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-white/15">
+      <!-- Шапка -->
+      <div class="p-3.5 sm:p-4 flex items-center justify-between border-b border-subtle shrink-0">
+        <div class="min-w-0 pr-2 flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-400/15 text-amber-500 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+              <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+              <line x1="6" y1="1" x2="6" y2="4"></line>
+              <line x1="10" y1="1" x2="10" y2="4"></line>
+              <line x1="14" y1="1" x2="14" y2="4"></line>
+            </svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 id="authorTipModalTitle" class="text-sm font-extrabold truncate text-main flex items-center gap-1.5">
+              На чай автору
+            </h3>
+            <p class="text-[11px] text-sec truncate">Интерактивная чайная станция & поддержка разработчика</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAuthorTipModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+
+      <!-- Контент: Две колонки (на мобильном футер — часть прокручиваемой страницы) -->
+      <div id="authorTipScrollBody" class="overflow-y-auto custom-scroll flex-1 flex flex-col">
+        <div class="p-3 sm:p-4 grow shrink-0">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+          
+          <!-- ЛЕВАЯ КОЛОНКА: ЧАЙНАЯ СТАНЦИЯ -->
+          <div class="flex flex-col gap-2.5 min-w-0 h-full">
+            <!-- Верхние кнопки бросания пакетиков (без промежуточного текста по ТЗ) -->
+            <div class="tea-chips shrink-0" id="tipChips"></div>
+
+            <!-- Игровой стейдж с физикой (растягивается до низа правой карточки оплаты) -->
+            <div class="tea-stage flex-1 min-h-[420px] h-full flex flex-col">
+              <canvas id="teaCanvas" aria-label="Чайные пакетики падают в стакан с водой"></canvas>
+              
+              <!-- Плашка управления над стаканом -->
+              <div class="tea-gp">
+                <div class="tea-cnt"><b id="teaTotal">0</b><span id="teaNoun">пакетиков</span></div>
+                <div class="flex-1"></div>
+                <div class="flex flex-col items-start gap-1">
+                  <div class="flex items-center gap-1.5">
+                    <button class="tea-gb" id="teaShakeBtn" aria-label="Встряхнуть стол" type="button">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 12c1.1-4 2.2-4 3.3 0s2.2 4 3.3 0 2.2-4 3.3 0 2.2 4 3.3 0 2.2 4 3.3 0"/>
+                      </svg>
+                      <span class="lbl">Встряхнуть стол</span>
+                    </button>
+                    <button class="tea-gb" id="teaSweepBtn" aria-label="Подмести" type="button">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13.5 10.5 22 2"/>
+                        <path d="M14.734 13.841a2 2 0 0 0-.314-2.42L12.58 9.58a2 2 0 0 0-2.421-.314l-7.657 4.461A1 1 0 0 0 2.3 15.3l6.403 6.403a1 1 0 0 0 1.571-.204z"/>
+                        <path d="m5 18 2-2"/>
+                        <path d="m7.699 10.7 5.602 5.601"/>
+                      </svg>
+                      <span class="lbl">Подмести</span>
+                    </button>
+                  </div>
+                  <div class="tea-gp-info">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    <span>пакетики можно хватать, а воды — касаться</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Всплывающий тост внутри стакана -->
+              <div class="tea-ts" id="teaToast"></div>
+            </div>
+          </div>
+
+          <!-- ПРАВАЯ КОЛОНКА: QR-КОД И ПЛАТЕЖНАЯ ССЫЛКА -->
+          <div class="flex flex-col gap-3 min-w-0 bg-card rounded-2xl p-3.5 sm:p-4 border border-subtle h-full justify-between">
+            <div class="space-y-3">
+              <!-- Заголовок блока оплаты -->
+              <div class="flex items-center justify-between">
+                <div class="font-extrabold text-sm text-main flex items-center gap-1.5">
+                  <span>СБП • Карты РФ • SberPay</span>
+                </div>
+              </div>
+
+              <!-- Интерактивная карточка с QR-кодом -->
+              <div class="flex flex-col items-center justify-center p-3.5 rounded-2xl ya-subcard border border-subtle">
+                <div class="relative w-40 h-40 bg-white p-1 rounded-2xl shadow-inner flex items-center justify-center">
+                  <!-- Актуальный QR-код (dalink.to/courier_analytics) -->
+                  <svg id="authorTipQrSvg" class="w-full h-full rounded-xl" viewBox="0 0 57 57" shape-rendering="crispEdges" role="img" aria-label="QR-код для поддержки проекта: https://dalink.to/courier_analytics" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="57" height="57" fill="#FFFFFF"/>
+                    <path d="M4 4h7v1H4zM13 4h1v1H13zM19 4h1v1H19zM23 4h1v1H23zM27 4h1v1H27zM29 4h1v1H29zM31 4h1v1H31zM34 4h4v1H34zM39 4h3v1H39zM44 4h1v1H44zM46 4h7v1H46zM4 5h1v1H4zM10 5h1v1H10zM14 5h4v1H14zM21 5h1v1H21zM23 5h6v1H23zM30 5h2v1H30zM33 5h1v1H33zM35 5h1v1H35zM38 5h7v1H38zM46 5h1v1H46zM52 5h1v1H52zM4 6h1v1H4zM6 6h3v1H6zM10 6h1v1H10zM12 6h2v1H12zM16 6h1v1H16zM18 6h1v1H18zM21 6h8v1H21zM32 6h2v1H32zM36 6h2v1H36zM39 6h1v1H39zM43 6h2v1H43zM46 6h1v1H46zM48 6h3v1H48zM52 6h1v1H52zM4 7h1v1H4zM6 7h3v1H6zM10 7h1v1H10zM12 7h2v1H12zM15 7h1v1H15zM17 7h1v1H17zM21 7h2v1H21zM25 7h1v1H25zM28 7h4v1H28zM34 7h2v1H34zM40 7h2v1H40zM43 7h1v1H43zM46 7h1v1H46zM48 7h3v1H48zM52 7h1v1H52zM4 8h1v1H4zM6 8h3v1H6zM10 8h1v1H10zM12 8h1v1H12zM15 8h1v1H15zM17 8h1v1H17zM19 8h1v1H19zM22 8h9v1H22zM33 8h2v1H33zM36 8h1v1H36zM41 8h1v1H41zM46 8h1v1H46zM48 8h3v1H48zM52 8h1v1H52zM4 9h1v1H4zM10 9h1v1H10zM12 9h2v1H12zM15 9h2v1H15zM19 9h4v1H19zM24 9h3v1H24zM30 9h2v1H30zM35 9h1v1H35zM38 9h1v1H38zM40 9h3v1H40zM46 9h1v1H46zM52 9h1v1H52zM4 10h7v1H4zM12 10h1v1H12zM14 10h1v1H14zM16 10h1v1H16zM18 10h1v1H18zM20 10h1v1H20zM22 10h1v1H22zM24 10h1v1H24zM26 10h1v1H26zM28 10h1v1H28zM30 10h1v1H30zM32 10h1v1H32zM34 10h1v1H34zM36 10h1v1H36zM38 10h1v1H38zM40 10h1v1H40zM42 10h1v1H42zM44 10h1v1H44zM46 10h7v1H46zM12 11h1v1H12zM14 11h1v1H14zM17 11h1v1H17zM20 11h5v1H20zM26 11h1v1H26zM30 11h1v1H30zM32 11h1v1H32zM34 11h5v1H34zM41 11h2v1H41zM4 12h1v1H4zM6 12h5v1H6zM13 12h4v1H13zM19 12h3v1H19zM23 12h2v1H23zM26 12h6v1H26zM35 12h1v1H35zM39 12h2v1H39zM42 12h1v1H42zM44 12h1v1H44zM46 12h5v1H46zM6 13h1v1H6zM8 13h2v1H8zM11 13h2v1H11zM14 13h1v1H14zM16 13h1v1H16zM19 13h2v1H19zM25 13h2v1H25zM28 13h2v1H28zM32 13h4v1H32zM40 13h2v1H40zM43 13h1v1H43zM46 13h2v1H46zM49 13h1v1H49zM51 13h1v1H51zM4 14h4v1H4zM9 14h4v1H9zM15 14h4v1H15zM20 14h2v1H20zM23 14h3v1H23zM28 14h1v1H28zM30 14h1v1H30zM32 14h2v1H32zM35 14h1v1H35zM37 14h3v1H37zM42 14h1v1H42zM45 14h1v1H45zM47 14h1v1H47zM50 14h3v1H50zM6 15h1v1H6zM8 15h2v1H8zM13 15h1v1H13zM15 15h1v1H15zM18 15h2v1H18zM21 15h1v1H21zM25 15h1v1H25zM27 15h1v1H27zM29 15h1v1H29zM31 15h2v1H31zM34 15h1v1H34zM36 15h3v1H36zM41 15h2v1H41zM47 15h2v1H47zM51 15h1v1H51zM10 16h1v1H10zM12 16h1v1H12zM14 16h3v1H14zM19 16h1v1H19zM21 16h1v1H21zM23 16h1v1H23zM26 16h1v1H26zM28 16h1v1H28zM33 16h3v1H33zM39 16h3v1H39zM44 16h1v1H44zM47 16h1v1H47zM49 16h3v1H49zM4 17h4v1H4zM9 17h1v1H9zM13 17h2v1H13zM16 17h2v1H16zM20 17h1v1H20zM27 17h2v1H27zM31 17h5v1H31zM37 17h1v1H37zM41 17h1v1H41zM43 17h1v1H43zM46 17h2v1H46zM51 17h1v1H51zM5 18h1v1H5zM9 18h2v1H9zM13 18h3v1H13zM20 18h1v1H20zM22 18h2v1H22zM25 18h1v1H25zM28 18h3v1H28zM32 18h1v1H32zM38 18h2v1H38zM42 18h1v1H42zM51 18h2v1H51zM4 19h1v1H4zM6 19h1v1H6zM11 19h1v1H11zM14 19h1v1H14zM17 19h1v1H17zM19 19h1v1H19zM21 19h2v1H21zM27 19h1v1H27zM29 19h1v1H29zM32 19h6v1H32zM42 19h1v1H42zM46 19h4v1H46zM52 19h1v1H52zM4 20h1v1H4zM7 20h1v1H7zM10 20h2v1H10zM13 20h1v1H13zM18 20h1v1H18zM24 20h2v1H24zM28 20h1v1H28zM30 20h2v1H30zM33 20h2v1H33zM39 20h2v1H39zM43 20h2v1H43zM46 20h2v1H46zM50 20h1v1H50zM5 21h5v1H5zM11 21h3v1H11zM16 21h2v1H16zM19 21h3v1H19zM23 21h1v1H23zM25 21h1v1H25zM31 21h1v1H31zM34 21h2v1H34zM45 21h3v1H45zM7 22h2v1H7zM10 22h2v1H10zM13 22h1v1H13zM16 22h1v1H16zM21 22h4v1H21zM28 22h4v1H28zM33 22h1v1H33zM35 22h1v1H35zM37 22h2v1H37zM40 22h3v1H40zM47 22h3v1H47zM51 22h2v1H51zM7 23h1v1H7zM9 23h1v1H9zM12 23h2v1H12zM22 23h2v1H22zM31 23h6v1H31zM39 23h1v1H39zM41 23h1v1H41zM43 23h6v1H43zM51 23h2v1H51zM5 24h1v1H5zM9 24h4v1H9zM14 24h1v1H14zM18 24h1v1H18zM20 24h2v1H20zM24 24h1v1H24zM26 24h3v1H26zM30 24h1v1H30zM33 24h2v1H33zM37 24h1v1H37zM40 24h3v1H40zM44 24h1v1H44zM46 24h1v1H46zM50 24h1v1H50zM52 24h1v1H52zM4 25h3v1H4zM8 25h1v1H8zM11 25h1v1H11zM15 25h1v1H15zM18 25h1v1H18zM20 25h2v1H20zM23 25h1v1H23zM27 25h1v1H27zM29 25h1v1H29zM32 25h3v1H32zM36 25h1v1H36zM39 25h2v1H39zM45 25h4v1H45zM51 25h1v1H51zM4 26h1v1H4zM8 26h7v1H8zM17 26h2v1H17zM20 26h1v1H20zM22 26h1v1H22zM24 26h1v1H24zM26 26h6v1H26zM33 26h1v1H33zM35 26h1v1H35zM37 26h4v1H37zM42 26h1v1H42zM44 26h6v1H44zM51 26h2v1H51zM6 27h3v1H6zM12 27h1v1H12zM14 27h1v1H14zM18 27h1v1H18zM22 27h1v1H22zM26 27h1v1H26zM30 27h3v1H30zM34 27h1v1H34zM36 27h1v1H36zM38 27h1v1H38zM41 27h1v1H41zM44 27h1v1H44zM48 27h1v1H48zM51 27h1v1H51zM5 28h1v1H5zM7 28h2v1H7zM10 28h1v1H10zM12 28h2v1H12zM16 28h2v1H16zM22 28h1v1H22zM24 28h3v1H24zM28 28h1v1H28zM30 28h2v1H30zM34 28h2v1H34zM37 28h5v1H37zM44 28h1v1H44zM46 28h1v1H46zM48 28h1v1H48zM50 28h2v1H50zM4 29h1v1H4zM6 29h3v1H6zM12 29h3v1H12zM16 29h1v1H16zM19 29h3v1H19zM23 29h1v1H23zM25 29h2v1H25zM30 29h1v1H30zM33 29h4v1H33zM39 29h2v1H39zM43 29h2v1H43zM48 29h3v1H48zM8 30h5v1H8zM14 30h1v1H14zM17 30h1v1H17zM19 30h3v1H19zM23 30h2v1H23zM26 30h5v1H26zM37 30h2v1H37zM40 30h1v1H40zM42 30h7v1H42zM52 30h1v1H52zM4 31h1v1H4zM8 31h2v1H8zM12 31h2v1H12zM17 31h1v1H17zM23 31h1v1H23zM25 31h1v1H25zM27 31h1v1H27zM30 31h3v1H30zM34 31h1v1H34zM36 31h2v1H36zM44 31h2v1H44zM51 31h2v1H51zM4 32h1v1H4zM8 32h3v1H8zM14 32h1v1H14zM16 32h1v1H16zM18 32h1v1H18zM22 32h1v1H22zM25 32h7v1H25zM35 32h1v1H35zM37 32h4v1H37zM42 32h3v1H42zM46 32h5v1H46zM5 33h3v1H5zM14 33h1v1H14zM16 33h3v1H16zM21 33h1v1H21zM23 33h3v1H23zM28 33h3v1H28zM32 33h1v1H32zM34 33h1v1H34zM36 33h2v1H36zM39 33h1v1H39zM44 33h3v1H44zM5 34h1v1H5zM9 34h5v1H9zM15 34h1v1H15zM17 34h1v1H17zM20 34h1v1H20zM22 34h1v1H22zM24 34h1v1H24zM29 34h1v1H29zM31 34h1v1H31zM33 34h1v1H33zM35 34h2v1H35zM38 34h2v1H38zM41 34h3v1H41zM45 34h2v1H45zM48 34h2v1H48zM51 34h2v1H51zM4 35h1v1H4zM6 35h1v1H6zM13 35h2v1H13zM16 35h1v1H16zM18 35h2v1H18zM21 35h1v1H21zM23 35h4v1H23zM28 35h1v1H28zM30 35h1v1H30zM32 35h1v1H32zM34 35h1v1H34zM36 35h1v1H36zM39 35h1v1H39zM44 35h1v1H44zM49 35h1v1H49zM51 35h2v1H51zM6 36h2v1H6zM9 36h3v1H9zM14 36h3v1H14zM19 36h6v1H19zM29 36h1v1H29zM31 36h1v1H31zM33 36h1v1H33zM35 36h1v1H35zM40 36h1v1H40zM43 36h1v1H43zM45 36h1v1H45zM48 36h1v1H48zM50 36h1v1H50zM52 36h1v1H52zM5 37h1v1H5zM7 37h3v1H7zM11 37h1v1H11zM15 37h2v1H15zM19 37h3v1H19zM25 37h1v1H25zM27 37h3v1H27zM31 37h5v1H31zM39 37h3v1H39zM45 37h1v1H45zM47 37h1v1H47zM51 37h1v1H51zM7 38h1v1H7zM10 38h1v1H10zM13 38h1v1H13zM16 38h2v1H16zM19 38h3v1H19zM27 38h2v1H27zM36 38h3v1H36zM40 38h1v1H40zM42 38h2v1H42zM46 38h1v1H46zM48 38h2v1H48zM52 38h1v1H52zM4 39h1v1H4zM18 39h1v1H18zM21 39h1v1H21zM25 39h1v1H25zM28 39h5v1H28zM34 39h5v1H34zM41 39h2v1H41zM44 39h1v1H44zM47 39h2v1H47zM51 39h2v1H51zM7 40h1v1H7zM10 40h2v1H10zM13 40h1v1H13zM16 40h2v1H16zM22 40h6v1H22zM39 40h2v1H39zM42 40h2v1H42zM45 40h1v1H45zM48 40h1v1H48zM50 40h1v1H50zM9 41h1v1H9zM11 41h4v1H11zM17 41h2v1H17zM20 41h2v1H20zM23 41h1v1H23zM25 41h1v1H25zM28 41h3v1H28zM33 41h2v1H33zM39 41h1v1H39zM41 41h1v1H41zM43 41h3v1H43zM47 41h1v1H47zM49 41h1v1H49zM51 41h1v1H51zM5 42h1v1H5zM9 42h3v1H9zM13 42h1v1H13zM16 42h2v1H16zM19 42h1v1H19zM21 42h3v1H21zM26 42h3v1H26zM31 42h1v1H31zM33 42h1v1H33zM35 42h1v1H35zM37 42h2v1H37zM40 42h1v1H40zM42 42h1v1H42zM44 42h4v1H44zM49 42h2v1H49zM52 42h1v1H52zM5 43h3v1H5zM14 43h3v1H14zM18 43h6v1H18zM29 43h4v1H29zM34 43h5v1H34zM41 43h2v1H41zM44 43h1v1H44zM52 43h1v1H52zM4 44h3v1H4zM10 44h1v1H10zM12 44h1v1H12zM15 44h3v1H15zM19 44h1v1H19zM23 44h2v1H23zM26 44h5v1H26zM33 44h3v1H33zM38 44h14v1H38zM12 45h1v1H12zM14 45h3v1H14zM18 45h1v1H18zM23 45h1v1H23zM26 45h1v1H26zM30 45h1v1H30zM32 45h4v1H32zM40 45h2v1H40zM44 45h1v1H44zM48 45h1v1H48zM51 45h1v1H51zM4 46h7v1H4zM14 46h1v1H14zM16 46h1v1H16zM21 46h1v1H21zM23 46h1v1H23zM26 46h1v1H26zM28 46h1v1H28zM30 46h1v1H30zM35 46h1v1H35zM38 46h3v1H38zM42 46h1v1H42zM44 46h1v1H44zM46 46h1v1H46zM48 46h1v1H48zM50 46h3v1H50zM4 47h1v1H4zM10 47h1v1H10zM12 47h1v1H12zM17 47h2v1H17zM20 47h1v1H20zM23 47h1v1H23zM25 47h2v1H25zM30 47h1v1H30zM32 47h1v1H32zM36 47h1v1H36zM44 47h1v1H44zM48 47h1v1H48zM51 47h2v1H51zM4 48h1v1H4zM6 48h3v1H6zM10 48h1v1H10zM12 48h2v1H12zM15 48h1v1H15zM17 48h2v1H17zM20 48h2v1H20zM26 48h5v1H26zM34 48h2v1H34zM39 48h2v1H39zM44 48h7v1H44zM52 48h1v1H52zM4 49h1v1H4zM6 49h3v1H6zM10 49h1v1H10zM12 49h1v1H12zM14 49h3v1H14zM18 49h1v1H18zM21 49h2v1H21zM26 49h1v1H26zM31 49h1v1H31zM34 49h3v1H34zM40 49h1v1H40zM44 49h9v1H44zM4 50h1v1H4zM6 50h3v1H6zM10 50h1v1H10zM12 50h1v1H12zM16 50h1v1H16zM18 50h3v1H18zM28 50h3v1H28zM33 50h1v1H33zM35 50h9v1H35zM45 50h3v1H45zM49 50h1v1H49zM4 51h1v1H4zM10 51h1v1H10zM17 51h3v1H17zM25 51h1v1H25zM27 51h3v1H27zM31 51h6v1H31zM39 51h1v1H39zM43 51h1v1H43zM45 51h2v1H45zM49 51h1v1H49zM52 51h1v1H52zM4 52h7v1H4zM12 52h6v1H12zM20 52h1v1H20zM22 52h4v1H22zM27 52h1v1H27zM30 52h1v1H30zM34 52h1v1H34zM37 52h2v1H37zM40 52h3v1H40zM45 52h1v1H45zM50 52h3v1H50z" fill="#000000"/>
+                  </svg>
+                </div>
+
+                <div class="mt-2.5 text-center">
+                  <div class="text-[11px] font-bold text-main">Наведите камеру смартфона</div>
+                </div>
+              </div>
+
+              <!-- Кнопки действий -->
+              <div class="space-y-2 pt-0.5">
+                <a id="btnTipPaymentLink" href="https://dalink.to/courier_analytics" target="_blank" rel="noopener noreferrer" onclick="handleTipPaymentClick(event)" class="w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 btn-primary shadow-sm hover:opacity-95 active:scale-98 transition cursor-pointer no-underline">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  <span>Оплатить по ссылке</span>
+                </a>
+                <button type="button" onclick="copyTipPaymentLink()" class="w-full py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 ya-subcard hover:opacity-90 active:scale-98 transition border border-subtle text-main cursor-pointer">
+                  <svg class="w-3.5 h-3.5 text-sec" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>Скопировать ссылку на оплату</span>
+                </button>
+              </div>
+            </div>
+
+
+          </div>
+
+          </div>
+        </div>
+
+        <!-- Футер модального окна (часть прокручиваемой страницы на мобильном, закреплён снизу на ПК) -->
+        <div id="authorTipFooter" class="p-3 sm:p-3.5 border-t border-subtle bg-card flex flex-row items-center justify-between gap-3 sm:gap-4 shrink-0">
+          <div class="text-[11px] text-sec leading-relaxed max-w-xl">
+            Донат автору помогает развивать проект, поддерживать сервер и сохранять аналитику бесплатной для всех курьеров.
+          </div>
+          <button type="button" onclick="closeAuthorTipModal()" class="py-1.5 px-4 rounded-xl text-xs font-bold active:scale-95 transition btn-primary cursor-pointer shrink-0">Закрыть</button>
+        </div>
+      </div>
+
+      <!-- Мобильная компактная плашка подсказки прокрутки (видна внизу отображаемой части, пока страница не прокручена до конца) -->
+      <div id="authorTipScrollHintBar" onclick="scrollAuthorTipToBottom()" class="hidden absolute bottom-0 left-0 right-0 z-20 px-3 py-2 border-t border-subtle bg-card flex items-center justify-center gap-1.5 text-[11px] font-semibold text-sec cursor-pointer select-none">
+        <span>Прокрутите страницу вниз</span>
+        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ПОДТВЕРЖДЕНИЕ СБРОСА К ДЕМО-ДАННЫМ -->
+  <dialog id="resetConfirmModal" onclick="if(event.target===this) closeResetConfirmModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="resetConfirmTitle">
+    <div class="app-shell w-full max-w-md rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-rose-500/30 bg-shell">
+      <!-- Шапка -->
+      <div class="p-4 flex items-center justify-between border-b border-subtle bg-card">
+        <div class="min-w-0 pr-2 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-500 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 id="resetConfirmTitle" class="text-sm font-extrabold truncate text-main">Сбросить данные к демо?</h3>
+            <p class="text-[11px] text-sec mt-0.5 truncate">Подтверждение очистки внесённых смен</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeResetConfirmModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+
+      <!-- Текст предупреждения -->
+      <div class="p-4 space-y-3 text-xs leading-relaxed text-main">
+        <p>
+          Все внесённые вами смены будут очищены из текущей памяти и выбранного хранилища. Приложение вернётся к демонстрационному набору данных.
+        </p>
+        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] flex items-start gap-2">
+          <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <span>Если вы не сохранили резервную копию (.xlsx или .csv), внесённые данные восстановить не удастся.</span>
+        </div>
+      </div>
+
+      <!-- Футер с кнопками -->
+      <div class="p-3.5 border-t border-subtle bg-card flex items-center justify-end gap-2 text-xs">
+        <button type="button" onclick="closeResetConfirmModal()" class="px-4 py-2 rounded-xl ya-nav-btn font-semibold text-main active:scale-95 transition cursor-pointer">Отмена</button>
+        <button type="button" id="btnConfirmResetToDemo" onclick="confirmResetToDemo()" class="px-4 py-2 rounded-xl font-bold bg-rose-500 hover:bg-rose-600 text-white shadow-md active:scale-95 transition cursor-pointer">Сбросить данные</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- МОДАЛЬНОЕ ОКНО: УНИВЕРСАЛЬНОЕ ПОДТВЕРЖДЕНИЕ ДЕЙСТВИЯ (ЗАМЕНА ДАННЫХ / СМЕНА РЕЖИМА) -->
+  <dialog id="confirmActionModal" onclick="if(event.target===this) closeConfirmActionModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" closedby="any" aria-labelledby="confirmActionTitle">
+    <div class="app-shell w-full max-w-md rounded-[28px] overflow-hidden flex flex-col shadow-2xl border border-amber-500/30 bg-shell">
+      <!-- Шапка -->
+      <div class="p-4 flex items-center justify-between border-b border-subtle bg-card">
+        <div class="min-w-0 pr-2 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 id="confirmActionTitle" class="text-sm font-extrabold truncate text-main">Подтверждение действия</h3>
+            <p id="confirmActionSubtitle" class="text-[11px] text-sec mt-0.5 truncate">Защита от случайной потери данных</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeConfirmActionModal()" aria-label="Закрыть" class="ya-nav-btn w-8 h-8 flex items-center justify-center text-sm font-bold shrink-0">✕</button>
+      </div>
+
+      <!-- Сообщение -->
+      <div class="p-4 space-y-3 text-xs leading-relaxed text-main">
+        <p id="confirmActionMessage">Вы собираетесь выполнить операцию, которая может повлиять на загруженные данные.</p>
+        <div id="confirmActionSubMessageContainer" class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] flex items-start gap-2">
+          <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span id="confirmActionSubMessage">Рекомендуется предварительно скачать резервную копию (.xlsx / .csv).</span>
+        </div>
+      </div>
+
+      <!-- Футер -->
+      <div class="p-3.5 border-t border-subtle bg-card flex items-center justify-end gap-2 text-xs">
+        <button type="button" onclick="closeConfirmActionModal()" class="px-4 py-2 rounded-xl ya-nav-btn font-semibold text-main active:scale-95 transition cursor-pointer">Отмена</button>
+        <button type="button" id="btnConfirmActionSubmit" onclick="confirmActionSubmit()" class="px-4 py-2 rounded-xl font-bold btn-primary shadow-md active:scale-95 transition cursor-pointer">Продолжить</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Индикатор загрузки / обработки файла -->
+  <div id="fileLoadingOverlay" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+    <div class="w-10 h-10 border-4 border-[#FCE000] border-t-transparent rounded-full animate-spin"></div>
+    <span id="fileLoadingText" class="text-xs font-bold text-white px-3 py-1.5 rounded-lg bg-black/60">Обработка данных...</span>
+  </div>
+
+  <!-- Toast (Всплывающее уведомление) -->
+  <div id="toastBox" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-2xl bg-[#1C1E23] border border-[#FCE000] text-white text-xs font-semibold shadow-2xl max-w-sm text-center">
+    <span id="toastText"></span>
+  </div>
+
+  <!-- Подключение скрипта приложения -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="theme/theme.js?v=14.9.4"></script>
+  <script src="script.js?v=14.9.4"></script>
+</body>
+</html>

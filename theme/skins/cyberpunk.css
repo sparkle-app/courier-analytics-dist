@@ -1,0 +1,157 @@
+/* =============================================================================
+   Скин «Киберпанк». Источник идей: Пример_стиля_киберпанк.html
+   Что здесь: токены → фон (неон + бегущая перспективная сетка + сканлайны) →
+   скошенные панели → «расшифровка» числа → скошенные переключатели →
+   светодиодные столбцы → терминальные бейджи → стили тикера и глитча.
+   Динамика (тикер, глитч заголовков, расшифровка, перезарядка столбцов) - в cyberpunk.js.
+   ============================================================================= */
+
+/* ---------- 1. Токены ---------- */
+html[data-skin="cyberpunk"] body {
+  --font-ui: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --font-display: 'Russo One', Impact, sans-serif;
+  --radius-card: 2px; --radius-sub: 2px; --radius-badge: 0px;
+  --shell-shadow: 0 0 0 1px rgba(0, 229, 255, 0.35), 0 24px 60px -20px rgba(255, 43, 214, 0.55);
+  --bg-outer: #05030C; --bg-shell: #0A0716; --bg-card: #0E0A1C; --bg-elevated: #160F2B; --bg-pill: #07040F;
+  --border-subtle: rgba(0, 229, 255, 0.2); --border-strong: rgba(0, 229, 255, 0.45);
+  --text-main: #EDE9FF; --text-secondary: #A59FCB; --text-muted: #7C74A8;
+  --ya-yellow: #FCEE0A; --ya-yellow-hover: #E8DA00; --ya-yellow-text: #07040F;
+  --surface-hover: rgba(0, 229, 255, 0.07);
+  --shadow-card: none;
+  --badge-green-text: #39FF88; --badge-red-text: #FF4D6A;
+  --control-active-bg: #FCEE0A; --control-active-fg: #07040F; --control-active-shadow: none;
+  --series-orders: #00E5FF; --series-surge: #FCEE0A; --series-rating: #FF8A00;
+  --series-bonus: #B14CFF; --series-goals: #FF2BD6; --series-tips: #39FF88;
+  /* токены самого скина */
+  --cp-cyan: #00E5FF; --cp-mag: #FF2BD6; --cp-grid: rgba(0, 229, 255, 0.22); --cp-scan: rgba(0, 0, 0, 0.3);
+}
+html[data-skin="cyberpunk"] body.light-mode {
+  --bg-outer: #E6DFF5; --bg-shell: #EEE9F8; --bg-card: #FFFFFF; --bg-elevated: #F4F0FB; --bg-pill: #E8E2F4;
+  --border-subtle: rgba(22, 16, 43, 0.18); --border-strong: rgba(22, 16, 43, 0.4);
+  --text-main: #16102B; --text-secondary: #5A5278; --text-muted: #8A82A8;
+  --ya-yellow: #E6C800; --ya-yellow-text: #16102B; --surface-hover: rgba(22, 16, 43, 0.05);
+  --badge-green-text: #07915C; --badge-red-text: #D91E48;
+  --control-active-bg: #FCEE0A; --control-active-fg: #16102B;
+  --series-orders: #00B8D4; --series-bonus: #A63DFF; --series-goals: #F01FC4; --series-tips: #14D66E;
+  --cp-cyan: #008FA3; --cp-mag: #D4149F; --cp-grid: rgba(212, 20, 159, 0.2); --cp-scan: rgba(22, 16, 43, 0.04);
+}
+
+/* ---------- 2. Фон: неоновые пятна + сетка-«пол» в перспективе + сканлайны ---------- */
+html[data-skin="cyberpunk"] body {
+  background-image: radial-gradient(520px 380px at 100% -60px, color-mix(in srgb, var(--cp-mag) 30%, transparent), transparent),
+                    radial-gradient(520px 420px at -20% 55%, color-mix(in srgb, var(--cp-cyan) 18%, transparent), transparent);
+}
+html[data-skin="cyberpunk"] body::before {
+  content: ""; position: fixed; left: -60%; right: -60%; bottom: 0; height: 48vh; z-index: 0; pointer-events: none;
+  background: linear-gradient(90deg, var(--cp-grid) 1px, transparent 1px) 0 0 / 48px 48px,
+              linear-gradient(var(--cp-grid) 1px, transparent 1px) 0 0 / 48px 48px;
+  transform: perspective(320px) rotateX(64deg); transform-origin: bottom;
+  -webkit-mask-image: linear-gradient(transparent, #000); mask-image: linear-gradient(transparent, #000);
+  animation: cp-floor 1.6s linear infinite;
+}
+@keyframes cp-floor { to { background-position: 0 48px, 0 48px; } }
+html[data-skin="cyberpunk"] body::after {
+  content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background: repeating-linear-gradient(0deg, var(--cp-scan) 0 1px, transparent 1px 3px);
+}
+html[data-skin="cyberpunk"] .app-root-wrapper,
+html[data-skin="cyberpunk"] #appRootWrapper { position: relative; z-index: 1; }
+
+/* ---------- 3. Панели: срезанные углы + неоновый контур (кроме шапки, меню и модалок) ---------- */
+html[data-skin="cyberpunk"] .ya-card:not(#topBannerContainer):not([id*="DropdownMenu"]):not([id*="Modal"]),
+html[data-skin="cyberpunk"] .ya-subcard:not([id*="DropdownMenu"]):not([id*="Modal"]) {
+  --c: 14px; position: relative; border-color: transparent !important;
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)));
+  box-shadow: inset 0 0 0 1px var(--border-strong), inset 0 0 28px color-mix(in srgb, var(--cp-cyan) 7%, transparent) !important;
+}
+html[data-skin="cyberpunk"] .ya-card:not(#topBannerContainer):not([id*="DropdownMenu"]):not([id*="Modal"])::before,
+html[data-skin="cyberpunk"] .ya-subcard:not([id*="DropdownMenu"]):not([id*="Modal"])::before {                      /* диагональ среза: правый верх */
+  content: ""; position: absolute; left: calc(100% - 14px); top: 0; width: 19.8px; height: 1px;
+  background: var(--border-strong); transform-origin: left top; transform: rotate(45deg); pointer-events: none;
+}
+html[data-skin="cyberpunk"] .ya-card:not(#topBannerContainer):not([id*="DropdownMenu"]):not([id*="Modal"])::after,
+html[data-skin="cyberpunk"] .ya-subcard:not([id*="DropdownMenu"]):not([id*="Modal"])::after {                       /* левый низ */
+  content: ""; position: absolute; left: 0; top: calc(100% - 14px); width: 19.8px; height: 1px;
+  background: var(--border-strong); transform-origin: left top; transform: rotate(45deg); pointer-events: none;
+}
+html[data-skin="cyberpunk"] #topBannerContainer { box-shadow: inset 0 0 0 1px var(--border-strong), 0 0 32px -12px var(--cp-mag) !important; }
+
+/* ---------- 4. Заголовки: глитч (data-t и класс .cp-gt ставит cyberpunk.js) ---------- */
+html[data-skin="cyberpunk"] .cp-gt { position: relative; }
+html[data-skin="cyberpunk"] .cp-gt::before,
+html[data-skin="cyberpunk"] .cp-gt::after {
+  content: attr(data-t); position: absolute; left: 0; top: 0; width: 100%; overflow: hidden;
+  clip-path: inset(0 0 100% 0); pointer-events: none;
+}
+html[data-skin="cyberpunk"] .cp-gt::before { color: var(--cp-mag); animation: cp-g1 4.5s infinite steps(1); }
+html[data-skin="cyberpunk"] .cp-gt::after  { color: var(--cp-cyan); animation: cp-g2 4.5s infinite steps(1); }
+@keyframes cp-g1 { 92% { clip-path: inset(10% 0 55% 0); transform: translate(-3px); } 96% { clip-path: inset(60% 0 8% 0); transform: translate(3px); } 98% { clip-path: inset(0 0 100% 0); } }
+@keyframes cp-g2 { 93% { clip-path: inset(40% 0 30% 0); transform: translate(3px); } 97% { clip-path: inset(5% 0 70% 0); transform: translate(-3px); } 99% { clip-path: inset(0 0 100% 0); } }
+
+/* ---------- 5. Главное число: хроматическое смещение, «расшифровка» делает js ---------- */
+html[data-skin="cyberpunk"] #allTimeHourlyProfit {
+  display: block; margin: 4px 0 2px; font: 400 clamp(40px, 12vw, 58px) / 1 var(--font-display) !important;
+  letter-spacing: -0.02em; color: var(--text-main); text-shadow: -2px 0 var(--cp-mag), 2px 0 var(--cp-cyan);
+}
+
+/* ---------- 6. Бегущая строка (узел создаёт cyberpunk.js) ---------- */
+html[data-skin="cyberpunk"] .cp-tk {
+  overflow: hidden; margin: 6px 0; padding: 4px 0; border-block: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-card) 70%, transparent); color: var(--cp-cyan);
+  font: 500 10.5px var(--font-ui); text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
+}
+html[data-skin="cyberpunk"] .cp-tki { display: inline-flex; animation: cp-tk var(--cp-tk-dur, 30s) linear infinite; will-change: transform; }
+html[data-skin="cyberpunk"] .cp-tki span { white-space: pre; }
+html[data-skin="cyberpunk"] .cp-tki b { color: var(--ya-yellow); font-weight: 700; }
+@keyframes cp-tk { to { transform: translateX(-50%); } }
+
+/* ---------- 7. Переключатели: выбранный пункт - жёлтый параллелограмм ---------- */
+html[data-skin="cyberpunk"] .ya-seg-btn-active,
+html[data-skin="cyberpunk"] .ya-switch-opt.ya-switch-opt-active,
+html[data-skin="cyberpunk"] .ya-preset-btn-active {
+  clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%); box-shadow: none !important; font-weight: 700;
+}
+html[data-skin="cyberpunk"] .btn-primary { clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ---------- 8. Диаграмма: светодиодные «ячейки», тусклые невыбранные, неоновая рамка у выбранного ---------- */
+html[data-skin="cyberpunk"] .chart-bar-item > .flex-1 {
+  -webkit-mask: repeating-linear-gradient(0deg, #000 0 5px, transparent 5px 7px);
+  mask: repeating-linear-gradient(0deg, #000 0 5px, transparent 5px 7px);
+}
+html[data-skin="cyberpunk"] .chart-bar-item > .flex-1 > * { border-radius: 0 !important; }
+html[data-skin="cyberpunk"] .chart-gross-striped { background: rgba(255, 255, 255, 0.28) !important; border: 0 !important; }
+html[data-skin="cyberpunk"] #barChartCanvas:has(.chart-bar-backdrop.block) .chart-bar-item:not(:has(.chart-bar-backdrop.block)) > .flex-1 { opacity: 0.5; }
+html[data-skin="cyberpunk"] .chart-bar-backdrop {
+  background: linear-gradient(transparent, color-mix(in srgb, var(--cp-cyan) 12%, transparent)) !important;
+  border: 1px solid var(--cp-cyan) !important; border-radius: 2px !important; box-shadow: 0 0 18px -4px var(--cp-cyan) !important;
+}
+html[data-skin="cyberpunk"] .chart-bar-backdrop::before {               /* линия прицела */
+  content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; opacity: 0.55;
+  background: linear-gradient(var(--cp-cyan), transparent);
+}
+html[data-skin="cyberpunk"] .chart-bar-item:has(.chart-bar-backdrop.block) [id^="barValue-"] {
+  color: var(--cp-cyan) !important; text-shadow: 0 0 8px var(--cp-cyan);
+}
+/* «зарядка» столбцов при смене режима: ячейки загораются снизу вверх (класс .fx-reprint вешает js) */
+html[data-skin="cyberpunk"].fx-reprint .chart-bar-item > .flex-1 {
+  animation: fx-reveal-up 0.9s steps(18, end) both; animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* ---------- 9. Подробности и бейджи: терминальный вид ---------- */
+html[data-skin="cyberpunk"] #selectedBarDetails { border-left: 3px solid var(--ya-yellow) !important; }
+html[data-skin="cyberpunk"] .ya-badge {
+  background: transparent !important; border: 1px solid currentColor !important;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+
+/* ---------- 10. Глитч при смене режима (RGB-расслоение), всплывающее уведомление ---------- */
+html[data-skin="cyberpunk"] .cp-gx { animation: cp-gl 0.5s steps(2) both; }
+@keyframes cp-gl {
+  20% { transform: translate(-4px, 1px); filter: drop-shadow(4px 0 var(--cp-mag)) drop-shadow(-4px 0 var(--cp-cyan)); }
+  45% { transform: translate(4px, -1px); }
+  70% { transform: translate(-2px, 0); filter: drop-shadow(-3px 0 var(--cp-mag)) drop-shadow(3px 0 var(--cp-cyan)); }
+}
+html[data-skin="cyberpunk"] #toastBox {
+  border: 1px solid var(--cp-cyan) !important; border-radius: 0 !important; box-shadow: 0 0 18px -4px var(--cp-cyan);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}

@@ -1,0 +1,132 @@
+/* =============================================================================
+   theme.css - ядро слоя оформления (загружается всегда, поверх style.css)
+
+   Принцип
+   1. Внешний вид = токены (CSS-переменные). Компоненты читают токены, а не #hex.
+   2. Режим светлый/тёмный: класс body.light-mode (как и раньше).
+   3. Скин: атрибут html[data-skin="…"]. Каждый скин - отдельная пара файлов
+        skins/<id>.css  - токены + текстуры + декор (подгружается при первом выборе)
+        skins/<id>.js   - динамика (тикер, глитч, «расшифровка» чисел…), см. theme.js
+   4. Эффекты можно выключить: html[data-fx="off"] (пункт в меню стилей) и автоматически
+      при prefers-reduced-motion.
+   ============================================================================= */
+
+/* ---------- 1. Токены по умолчанию (= текущий внешний вид, скин «default» ничего не меняет) ---------- */
+:root {
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--font-ui);
+  --radius-card: 20px;
+  --radius-sub: 14px;
+  --radius-badge: 6px;
+  --shell-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --control-active-bg: #334155;
+  --control-active-fg: #F8FAFC;
+  --control-active-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  --series-orders: #3B82F6;
+  --series-surge:  #FCE000;
+  --series-rating: #FB923C;
+  --series-bonus:  #A855F7;
+  --series-goals:  #EC4899;
+  --series-tips:   #34D399;
+}
+body.light-mode {
+  --control-active-bg: #1E293B;
+  --control-active-fg: #FFFFFF;
+}
+
+/* ---------- 2. Семантические классы серий (вместо bg-blue-500 и т.п.) ---------- */
+.seg-orders { background-color: var(--series-orders); }
+.seg-surge  { background-color: var(--series-surge); }
+.seg-rating { background-color: var(--series-rating); }
+.seg-bonus  { background-color: var(--series-bonus); }
+.seg-goals  { background-color: var(--series-goals); }
+.seg-tips   { background-color: var(--series-tips); }
+
+/* ---------- 2.1. Базовые токены встроенных скинов (мгновенная доступность цветов и cssVar) ---------- */
+html[data-skin="print"] body {
+  --font-ui: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --font-display: 'Unbounded', 'Arial Black', sans-serif;
+  --radius-card: 4px; --radius-sub: 3px; --radius-badge: 2px;
+  --shell-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  --bg-outer: #0D0E13; --bg-shell: #14151B; --bg-card: #1B1D25; --bg-elevated: #232631; --bg-pill: #101116;
+  --border-subtle: rgba(241, 238, 230, 0.16); --border-strong: rgba(241, 238, 230, 0.3);
+  --text-main: #F1EEE6; --text-secondary: #A0A6B6; --text-muted: #7C8294;
+  --ya-yellow: #FFE800; --ya-yellow-hover: #F2DC00; --ya-yellow-text: #20212B;
+  --surface-hover: rgba(241, 238, 230, 0.05);
+  --shadow-card: 4px 4px 0 rgba(255, 72, 176, 0.35);
+  --control-active-bg: #FFE800; --control-active-fg: #20212B; --control-active-shadow: none;
+  --series-orders: #2B97E8; --series-surge: #FFE800; --series-rating: #FF6C2F;
+  --series-bonus: #765BA7; --series-goals: #FF48B0; --series-tips: #00A95C;
+}
+html[data-skin="print"] body.light-mode {
+  --bg-outer: #DDE1E8; --bg-shell: #ECEEF2; --bg-card: #FBFAF6; --bg-elevated: #F1F2F5; --bg-pill: #E4E7EC;
+  --border-subtle: rgba(32, 33, 43, 0.18); --border-strong: rgba(32, 33, 43, 0.34);
+  --text-main: #20212B; --text-secondary: #4E5463; --text-muted: #7B8190;
+  --surface-hover: rgba(32, 33, 43, 0.05);
+  --shadow-card: 4px 4px 0 rgba(0, 120, 191, 0.28);
+  --series-orders: #0078BF;
+}
+
+html[data-skin="cyberpunk"] body {
+  --font-ui: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --font-display: 'Russo One', Impact, sans-serif;
+  --radius-card: 2px; --radius-sub: 2px; --radius-badge: 0px;
+  --shell-shadow: 0 0 0 1px rgba(0, 229, 255, 0.35), 0 24px 60px -20px rgba(255, 43, 214, 0.55);
+  --bg-outer: #05030C; --bg-shell: #0A0716; --bg-card: #0E0A1C; --bg-elevated: #160F2B; --bg-pill: #07040F;
+  --border-subtle: rgba(0, 229, 255, 0.2); --border-strong: rgba(0, 229, 255, 0.45);
+  --text-main: #EDE9FF; --text-secondary: #A59FCB; --text-muted: #7C74A8;
+  --ya-yellow: #FCEE0A; --ya-yellow-hover: #E8DA00; --ya-yellow-text: #07040F;
+  --surface-hover: rgba(0, 229, 255, 0.07);
+  --shadow-card: none;
+  --badge-green-text: #39FF88; --badge-red-text: #FF4D6A;
+  --control-active-bg: #FCEE0A; --control-active-fg: #07040F; --control-active-shadow: none;
+  --series-orders: #00E5FF; --series-surge: #FCEE0A; --series-rating: #FF8A00;
+  --series-bonus: #B14CFF; --series-goals: #FF2BD6; --series-tips: #39FF88;
+}
+html[data-skin="cyberpunk"] body.light-mode {
+  --bg-outer: #E6DFF5; --bg-shell: #EEE9F8; --bg-card: #FFFFFF; --bg-elevated: #F4F0FB; --bg-pill: #E8E2F4;
+  --border-subtle: rgba(22, 16, 43, 0.18); --border-strong: rgba(22, 16, 43, 0.4);
+  --text-main: #16102B; --text-secondary: #5A5278; --text-muted: #8A82A8;
+  --ya-yellow: #E6C800; --ya-yellow-text: #16102B; --surface-hover: rgba(22, 16, 43, 0.05);
+  --badge-green-text: #07915C; --badge-red-text: #D91E48;
+  --control-active-bg: #FCEE0A; --control-active-fg: #16102B;
+  --series-orders: #00B8D4; --series-bonus: #A63DFF; --series-goals: #F01FC4; --series-tips: #14D66E;
+}
+
+/* ---------- 3. Общие потребители токенов ---------- */
+body { font-family: var(--font-ui); }
+.app-shell { box-shadow: var(--shell-shadow); }
+.app-shell h1, .app-shell h2, .app-shell h3 { font-family: var(--font-display); }
+.ya-card   { border-radius: var(--radius-card); }
+.ya-subcard { border-radius: var(--radius-sub); }
+.ya-badge  { border-radius: var(--radius-badge); }
+
+/* :not(#fx-) поднимает специфичность (ID), чтобы токены побеждали «зашитые» тёмные правила style.css
+   вида body:not(.light-mode) .ya-seg-btn-active {...}. Скины, которым нужен другой вид, пишут то же. */
+.ya-seg-btn-active:not(#fx-),
+.ya-switch-opt.ya-switch-opt-active:not(#fx-),
+.ya-preset-btn-active:not(#fx-),
+.btn-primary:not(#fx-),
+.ya-btn-slate:not(#fx-) {
+  background-color: var(--control-active-bg) !important;
+  color: var(--control-active-fg) !important;
+}
+.ya-seg-btn-active:not(#fx-),
+.ya-switch-opt.ya-switch-opt-active:not(#fx-) { box-shadow: var(--control-active-shadow) !important; }
+
+/* ---------- 4. Общие ключевые кадры, которыми пользуются скины ---------- */
+@keyframes fx-reveal-up   { from { clip-path: inset(100% 0 0 0); } }   /* столбец «печатается/заряжается» снизу вверх */
+@keyframes fx-reveal-right { from { clip-path: inset(0 100% 0 0); } }  /* росчерк слева направо */
+
+/* ---------- 5. Выключение эффектов ---------- */
+html[data-fx="off"] body::before,
+html[data-fx="off"] body::after,
+html[data-fx="off"] .fx-deco { display: none !important; }
+html[data-fx="off"] *, html[data-fx="off"] *::before, html[data-fx="off"] *::after {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin] *, html[data-skin] *::before, html[data-skin] *::after {
+    animation: none !important; transition: none !important;
+  }
+}
