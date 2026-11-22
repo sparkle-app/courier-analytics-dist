@@ -1,0 +1,8 @@
+# robots.txt for courier-analytics.ru
+User-agent: *
+Allow: /
+Allow: /assets/demo_data.json.gz
+Allow: /assets/cover_courier_analytics_dark_card.png
+
+# Sitemaps
+Sitemap: https://courier-analytics.ru/sitemap.xml
